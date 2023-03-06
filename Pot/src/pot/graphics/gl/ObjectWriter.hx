@@ -22,7 +22,8 @@ class ObjectWriter {
 	var nz:Float = 0;
 	var u:Float = 0;
 	var v:Float = 0;
-	var numVertices:Int = 0;
+
+	public var numVertices(default, null):Int = 0;
 
 	public function new(position:FloatBuffer, color:FloatBuffer, normal:FloatBuffer, texCoord:FloatBuffer, index:IntBuffer) {
 		positionWriter = new FloatBufferWriter(position, ArrayBuffer, DynamicDraw);

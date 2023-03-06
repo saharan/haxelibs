@@ -1045,6 +1045,19 @@ class Graphics {
 		localObjWriter.index(i);
 	}
 
+	/**
+	 * call this after four vertex(...) calls to add another triangle to make a quad
+	 * make sure the four vertices are passed in CCW order
+	 */
+	public inline function makeQuad():Void {
+		shapeCheck(true, "begin shape before makeQuad");
+		if (localObj.mode != Triangles) {
+			throw new Error("shape mode must be Triangles");
+		}
+		localObjWriter.index(localObjWriter.numVertices - 4);
+		localObjWriter.index(localObjWriter.numVertices - 2);
+	}
+
 	public function beginShape(mode:ShapeMode):Void {
 		sceneCheck(true, "begin scene before begin shape");
 		shapeCheck(false, "shape already begun");
