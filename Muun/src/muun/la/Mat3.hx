@@ -39,7 +39,7 @@ abstract Mat3(Mat3Data) from Mat3Data {
 	}
 
 	extern public static inline function translate(v:Vec2):Mat3 {
-		return of(0, 0, v.x, 0, 0, v.y, 0, 0, 1); 
+		return of(1, 0, v.x, 0, 1, v.y, 0, 0, 1); 
 	}
 
 	public var row0(get, set):Vec3;
@@ -282,7 +282,7 @@ abstract Mat3(Mat3Data) from Mat3Data {
 		return a * b.inv;
 	}
 
-	@:op(A << B)
+	@:op(A <<= B)
 	extern public static inline function assign(a:Mat3, b:Mat3):Mat3 {
 		a.e00 = b.e00;
 		a.e01 = b.e01;

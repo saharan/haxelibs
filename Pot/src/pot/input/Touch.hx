@@ -20,6 +20,8 @@ class Touch {
 
 	final rawId:Int;
 
+	var px2:Float = 0;
+	var py2:Float = 0;
 	var nx:Float = 0;
 	var ny:Float = 0;
 	var ntouching:Bool = false;
@@ -48,21 +50,27 @@ class Touch {
 		ntouching = false;
 	}
 
-	function update():Void {
+	function update(substepRatio:Float):Void {
 		if (ntouching2) {
 			px = nx;
 			py = ny;
+			px2 = nx;
+			py2 = ny;
 		} else {
 			px = x;
 			py = y;
 		}
-		x = nx;
-		y = ny;
+		x = px2 + substepRatio * (nx - px2);
+		y = py2 + substepRatio * (ny - py2);
 		dx = x - px;
 		dy = y - py;
 		ptouching = touching;
 		touching = ntouching || ntouching2;
 		ntouching2 = false;
 		dtouching = (touching ? 1 : 0) - (ptouching ? 1 : 0);
+		if (substepRatio == 1) {
+			px2 = x;
+			py2 = y;
+		}
 	}
 }

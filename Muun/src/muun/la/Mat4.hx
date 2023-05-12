@@ -386,7 +386,7 @@ abstract Mat4(Mat4Data) from Mat4Data {
 		return a * b.inv;
 	}
 
-	@:op(A << B)
+	@:op(A <<= B)
 	extern public static inline function assign(a:Mat4, b:Mat4):Mat4 {
 		a.e00 = b.e00;
 		a.e01 = b.e01;

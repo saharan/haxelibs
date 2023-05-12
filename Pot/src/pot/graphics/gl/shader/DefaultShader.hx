@@ -41,6 +41,21 @@ class DefaultShader extends ShaderMain {
 		return vColor;
 	}
 
+	function ambientLight(lightColor:Vec3, color:Vec3):Vec3 {
+		return lightColor * color * material.ambient;
+	}
+
+	function directionalLight(lightColor:Vec3, lightDirection:Vec3, eye:Vec3, normal:Vec3, color:Vec3):Vec3 {
+		final ldot = max(-dot(lightDirection, normal), 0);
+		var res = lightColor * color * ldot * material.diffuse;
+		if (dot(normal, eye) < 0) {
+			final reflEye = eye - 2 * normal * dot(eye, normal);
+			final rdot = max(-dot(reflEye, lightDirection), 0);
+			res += lightColor * pow(rdot, material.shininess) * material.specular;
+		}
+		return res;
+	}
+
 	function fragment():Void {
 		final baseColor = computeBaseColor();
 		if (baseColor.w == 0) {
@@ -56,10 +71,7 @@ class DefaultShader extends ShaderMain {
 			n = -n;
 		}
 		var color = baseColor.xyz;
-		var ambientTotal = vec3(0);
-		var diffuseTotal = vec3(0);
-		var specularTotal = vec3(0);
-		var emissionTotal = color * material.emission;
+		var total = color * material.emission;
 		for (i in 0...numLights) {
 			final light = lights[i];
 			final lp = light.position;
@@ -67,21 +79,16 @@ class DefaultShader extends ShaderMain {
 			var ln = light.normal;
 			final amb = lp.w == 0 && dot(ln, ln) == 0;
 			if (amb) {
-				ambientTotal += lc * color * material.ambient;
+				total += ambientLight(lc, color);
 			} else {
 				final dir = lp.w == 0;
 				if (!dir) {
 					ln = safeNormalize(vPosition - lp.xyz); // point light
 				}
 				final ldot = max(-dot(ln, n), 0);
-				diffuseTotal += lc * color * ldot * material.diffuse;
-				if (ldot > 0) {
-					final reflEye = eye - 2 * n * dot(eye, n);
-					final rdot = max(-dot(reflEye, ln), 0);
-					specularTotal += lc * pow(rdot, material.shininess) * material.specular;
-				}
+				total += directionalLight(lc, ln, eye, n, color);
 			}
 		}
-		oColor = vec4(ambientTotal + diffuseTotal + specularTotal + emissionTotal, baseColor.w);
+		oColor = vec4(total, baseColor.w);
 	}
 }

@@ -1,23 +1,24 @@
 package pot.graphics.gl;
 
-import js.lib.Uint32Array;
-import js.lib.Int32Array;
-import pot.graphics.gl.low.BufferType;
-import js.lib.Float32Array;
-import pot.graphics.gl.low.IntBuffer;
-import pot.graphics.gl.low.FloatBuffer;
-import pot.graphics.gl.low.TransformFeedback;
-import pot.graphics.gl.low.ShapeMode;
+import pot.graphics.gl.low.BufferKind;
 import haxe.ds.Vector;
 import js.html.CanvasElement;
 import js.html.webgl.GL2;
 import js.lib.Error;
+import js.lib.Float32Array;
+import js.lib.Int32Array;
+import js.lib.Uint32Array;
 import muun.la.Mat3;
 import muun.la.Mat4;
 import muun.la.Vec2;
 import muun.la.Vec3;
 import muun.la.Vec4;
 import pot.graphics.bitmap.BitmapSource;
+import pot.graphics.gl.low.BufferType;
+import pot.graphics.gl.low.FloatBuffer;
+import pot.graphics.gl.low.IntBuffer;
+import pot.graphics.gl.low.ShapeMode;
+import pot.graphics.gl.low.TransformFeedback;
 import pot.graphics.gl.shader.Consts;
 import pot.graphics.gl.shader.DefaultShader;
 import pot.graphics.gl.shader.DefaultShaderTextured;
@@ -59,10 +60,16 @@ class Graphics {
 	final mvpMat:Mat4 = Mat4.id;
 	final vpMat:Mat4 = Mat4.id;
 
+	var vpSet:Bool = false;
+	var vpX:Int;
+	var vpY:Int;
+	var vpW:Int;
+	var vpH:Int;
+
 	var sceneOpen:Bool;
 	var shapeOpen:Bool;
 
-	static inline var MAT_STACK_SIZE:Int = 1024;
+	static inline var MAT_STACK_SIZE:Int = 65536;
 
 	var matStack:Vector<Float>;
 	var matStackCount:Int;
@@ -84,7 +91,8 @@ class Graphics {
 	public function new(canvas:CanvasElement) {
 		this.canvas = canvas;
 		// gl = untyped WebGLDebugUtils.makeDebugContext(canvas.getContextWebGL2({
-		// 	premultipliedAlpha: false
+		// 	premultipliedAlpha: false,
+		// 	preserveDrawingBuffer: true
 		// }));
 		gl = canvas.getContextWebGL2({
 			premultipliedAlpha: false,
@@ -133,6 +141,7 @@ class Graphics {
 		gl.getExtension(OES_texture_half_float_linear);
 		gl.getExtension(EXT_color_buffer_float);
 
+		gl.enable(GL2.SCISSOR_TEST);
 		gl.disable(GL2.DEPTH_TEST);
 		gl.enable(GL2.BLEND);
 		gl.frontFace(GL2.CCW);
@@ -207,17 +216,24 @@ class Graphics {
 	public function screen(width:Float, height:Float):Void {
 		screenWidth = width;
 		screenHeight = height;
-		if (currentRenderTarget == null)
-			resetViewport();
 		updatePerspectiveMatrix();
 	}
 
 	public function viewport(x:Int, y:Int, width:Int, height:Int):Void {
-		var targetHeight = currentRenderTarget == null ? canvas.height : currentRenderTarget.height;
-		gl.viewport(x, targetHeight - height - y, width, height);
+		sceneCheck(false, "cannot change viewport inside a scene");
+		vpSet = true;
+		vpX = x;
+		vpY = y;
+		vpW = width;
+		vpH = height;
 	}
 
 	public function resetViewport():Void {
+		sceneCheck(false, "cannot change viewport inside a scene");
+		vpSet = false;
+	}
+
+	function updateViewport():Void {
 		var width;
 		var height;
 		if (currentRenderTarget == null) {
@@ -227,7 +243,13 @@ class Graphics {
 			width = currentRenderTarget.width;
 			height = currentRenderTarget.height;
 		}
-		gl.viewport(0, 0, width, height);
+		if (vpSet) {
+			gl.viewport(vpX, height - vpH - vpY, vpW, vpH);
+			gl.scissor(vpX, height - vpH - vpY, vpW, vpH);
+		} else {
+			gl.viewport(0, 0, width, height);
+			gl.scissor(0, 0, width, height);
+		}
 	}
 
 	public function getRawGL():GL2 {
@@ -246,17 +268,18 @@ class Graphics {
 		sceneCheck(false, "scene already begun");
 		sceneOpen = true;
 
-		modelMat << Mat4.id;
+		modelMat <<= Mat4.id;
 		numLights = 0;
 		currentTexture = null;
 		localObjWriter.color(Vec4.of(1, 1, 1, 1));
 		localObjWriter.normal(Vec3.of(0, 0, 0));
 		localObjWriter.texCoord(Vec2.of(0, 0));
 		resetMaterial();
+		updateViewport();
 
 		if (!cameraSet) {
 			defaultCameraPos.set(screenWidth * 0.5, screenHeight * 0.5, -screenHeight / (2 * Math.tan(computeFovY() * 0.5)));
-			viewMat << Mat4.lookAt(defaultCameraPos, defaultCameraPos.xy.extend(0), -Vec3.ey);
+			viewMat <<= Mat4.lookAt(defaultCameraPos, defaultCameraPos.xy.extend(0), -Vec3.ey);
 		}
 	}
 
@@ -378,27 +401,27 @@ class Graphics {
 		return tex;
 	}
 
-	public function loadBitmap(source:BitmapSource, type:TextureType = Int8):Texture {
+	public function loadBitmap(source:BitmapSource, type:TextureType = Int8, flipY:Bool = true):Texture {
 		final tex = new Texture(gl);
-		tex.load(source, type);
+		tex.load(source, type, flipY);
 		return tex;
 	}
 
-	public function loadBitmapTo(dst:Texture, source:BitmapSource, type:TextureType = Int8):Void {
-		dst.load(source, type);
+	public function loadBitmapTo(dst:Texture, source:BitmapSource, type:TextureType = Int8, flipY:Bool = true):Void {
+		dst.load(source, type, flipY);
 	}
 
-	public function createFloatBuffer():FloatBuffer {
-		return new FloatBuffer(gl);
+	public function createFloatBuffer(kind:BufferKind):FloatBuffer {
+		return new FloatBuffer(gl, kind);
 	}
 
 	public function createVertexBuffer(type:BufferType, size:Int):VertexBuffer {
 		return {
 			buffer: switch type {
 				case Int:
-					Int(new IntBuffer(gl));
+					Int(new IntBuffer(gl, ArrayBuffer));
 				case Float:
-					Float(new FloatBuffer(gl));
+					Float(new FloatBuffer(gl, ArrayBuffer));
 			},
 			size: size,
 			stride: 0,
@@ -458,9 +481,9 @@ class Graphics {
 		}
 		final buffer:TypedBuffer = switch type {
 			case Int:
-				Int(new IntBuffer(gl));
+				Int(new IntBuffer(gl, ArrayBuffer));
 			case Float:
-				Float(new FloatBuffer(gl));
+				Float(new FloatBuffer(gl, ArrayBuffer));
 		}
 		return {
 			vertexBuffers: [for (i => size in sizes) {
@@ -474,12 +497,12 @@ class Graphics {
 		}
 	}
 
-	public function createIntBuffer():IntBuffer {
-		return new IntBuffer(gl);
+	public function createIntBuffer(kind:BufferKind):IntBuffer {
+		return new IntBuffer(gl, kind);
 	}
 
 	overload extern public inline function createFrameBuffer(textures:Array<Texture>):FrameBuffer {
-		return new FrameBuffer(gl, textures);
+		return new FrameBuffer(gl, textures, true);
 	}
 
 	overload extern public inline function createFrameBuffer(texture:Texture):FrameBuffer {
@@ -498,12 +521,11 @@ class Graphics {
 		if (target == null) {
 			gl.bindFramebuffer(GL2.FRAMEBUFFER, null);
 			gl.drawBuffers([GL2.BACK]);
-			gl.viewport(0, 0, canvas.width, canvas.height);
 		} else {
 			gl.bindFramebuffer(GL2.FRAMEBUFFER, target.getRawFrameBuffer());
 			gl.drawBuffers([for (i in 0...target.textures.length) GL2.COLOR_ATTACHMENT0 + i]);
-			gl.viewport(0, 0, target.width, target.height);
 		}
+		resetViewport();
 	}
 
 	public function pushMatrix():Void {
@@ -559,39 +581,39 @@ class Graphics {
 	}
 
 	overload extern public inline function scale(sx:Float, sy:Float, sz:Float = 1):Void {
-		modelMat << modelMat * Vec4.of(sx, sy, sz, 1).diag;
+		modelMat <<= modelMat * Vec4.of(sx, sy, sz, 1).diag;
 	}
 
 	extern public inline function rotate(ang:Float):Void {
-		modelMat << modelMat * Mat3.rot(ang, Vec3.ez).toMat4();
+		modelMat <<= modelMat * Mat3.rot(ang, Vec3.ez).toMat4();
 	}
 
 	extern public inline function rotateX(ang:Float):Void {
-		modelMat << modelMat * Mat3.rot(ang, Vec3.ex).toMat4();
+		modelMat <<= modelMat * Mat3.rot(ang, Vec3.ex).toMat4();
 	}
 
 	extern public inline function rotateY(ang:Float):Void {
-		modelMat << modelMat * Mat3.rot(ang, Vec3.ey).toMat4();
+		modelMat <<= modelMat * Mat3.rot(ang, Vec3.ey).toMat4();
 	}
 
 	extern public inline function rotateZ(ang:Float):Void {
-		modelMat << modelMat * Mat3.rot(ang, Vec3.ez).toMat4();
+		modelMat <<= modelMat * Mat3.rot(ang, Vec3.ez).toMat4();
 	}
 
 	overload extern public inline function translate(tx:Float, ty:Float, tz:Float = 0):Void {
-		modelMat << modelMat * Mat4.translate(Vec3.of(tx, ty, tz));
+		modelMat <<= modelMat * Mat4.translate(Vec3.of(tx, ty, tz));
 	}
 
 	overload extern public inline function translate(t:Vec3):Void {
-		modelMat << modelMat * Mat4.translate(t);
+		modelMat <<= modelMat * Mat4.translate(t);
 	}
 
 	overload extern public inline function translate(t:Vec2):Void {
-		modelMat << modelMat * Mat4.translate(t.extend(0));
+		modelMat <<= modelMat * Mat4.translate(t.extend(0));
 	}
 
 	extern public inline function transform(mat:Mat4):Void {
-		modelMat << modelMat * mat;
+		modelMat <<= modelMat * mat;
 	}
 
 	extern public inline function resetCamera():Void {
@@ -600,10 +622,10 @@ class Graphics {
 
 	extern public inline function camera(pos:Vec3, at:Vec3, up:Vec3):Void {
 		cameraSet = true;
-		cameraPos << pos;
-		cameraAt << at;
-		cameraUp << up;
-		viewMat << Mat4.lookAt(cameraPos, cameraAt, cameraUp);
+		cameraPos <<= pos;
+		cameraAt <<= at;
+		cameraUp <<= up;
+		viewMat <<= Mat4.lookAt(cameraPos, cameraAt, cameraUp);
 	}
 
 	public inline function perspective(?fov:Float, ?fovMode:FovMode = FovY, ?near:Float = 0.1, ?far:Float = 10000):Void {
@@ -637,7 +659,7 @@ class Graphics {
 	}
 
 	inline function updatePerspectiveMatrix():Void {
-		projMat << Mat4.perspective(computeFovY(), screenWidth / screenHeight, cameraNear, cameraFar);
+		projMat <<= Mat4.perspective(computeFovY(), screenWidth / screenHeight, cameraNear, cameraFar);
 	}
 
 	public function image(img:Texture, srcX:Float, srcY:Float, srcW:Float, srcH:Float, dstX:Float, dstY:Float, dstW:Float,
@@ -652,13 +674,13 @@ class Graphics {
 
 			beginShape(TriangleStrip);
 			normal(0, 0, -1);
-			texCoord(srcX, srcY);
+			texCoord(srcX, 1 - srcY);
 			vertex(dstX, dstY, 0);
-			texCoord(srcX, srcY + srcH);
+			texCoord(srcX, 1 - srcY - srcH);
 			vertex(dstX, dstY + dstH, 0);
-			texCoord(srcX + srcW, srcY);
+			texCoord(srcX + srcW, 1 - srcY);
 			vertex(dstX + dstW, dstY, 0);
-			texCoord(srcX + srcW, srcY + srcH);
+			texCoord(srcX + srcW, 1 - srcY - srcH);
 			vertex(dstX + dstW, dstY + dstH, 0);
 			endShape();
 		});
@@ -946,9 +968,9 @@ class Graphics {
 		if (numLights == lightBuf.length)
 			throw new Error("too many lights");
 		var light = lightBuf[numLights++];
-		light.col << Vec3.of(r, g, b);
-		light.pos << Vec4.zero;
-		light.nor << Vec3.zero;
+		light.col <<= Vec3.of(r, g, b);
+		light.pos <<= Vec4.zero;
+		light.nor <<= Vec3.zero;
 	}
 
 	overload extern public inline function directionalLight(rgb:Float, dir:Vec3):Void {
@@ -964,9 +986,9 @@ class Graphics {
 		if (numLights == lightBuf.length)
 			throw new Error("too many lights");
 		var light = lightBuf[numLights++];
-		light.col << Vec3.of(r, g, b);
-		light.pos << Vec4.zero;
-		light.nor << dir.normalized;
+		light.col <<= Vec3.of(r, g, b);
+		light.pos <<= Vec4.zero;
+		light.nor <<= dir.normalized;
 	}
 
 	overload extern public inline function pointLight(rgb:Float, pos:Vec3):Void {
@@ -982,9 +1004,9 @@ class Graphics {
 		if (numLights == lightBuf.length)
 			throw new Error("too many lights");
 		var light = lightBuf[numLights++];
-		light.col << Vec3.of(r, g, b);
-		light.pos << Vec4.of(pos.x, pos.y, pos.z, 1);
-		light.nor << Vec3.zero;
+		light.col <<= Vec3.of(r, g, b);
+		light.pos <<= Vec4.of(pos.x, pos.y, pos.z, 1);
+		light.nor <<= Vec3.zero;
 	}
 
 	public inline function ambient(v:Float):Void {
@@ -1043,6 +1065,10 @@ class Graphics {
 	public inline function index(i:Int):Void {
 		shapeCheck(true, "begin shape before index");
 		localObjWriter.index(i);
+	}
+
+	public inline function nextIndex():Int {
+		return localObjWriter.numVertices;
 	}
 
 	/**

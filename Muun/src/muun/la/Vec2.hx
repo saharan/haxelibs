@@ -162,7 +162,7 @@ abstract Vec2(Vec2Data) from Vec2Data {
 		return unary(b, b -> a / b);
 	}
 
-	@:op(A << B)
+	@:op(A <<= B)
 	extern public static inline function assign(a:Vec2, b:Vec2):Vec2 {
 		a.x = b.x;
 		a.y = b.y;

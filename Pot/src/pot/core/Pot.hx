@@ -1,5 +1,6 @@
 package pot.core;
 
+import muun.la.Vec2;
 import js.html.Element;
 import js.Browser;
 import js.html.CanvasElement;
@@ -10,6 +11,7 @@ import js.html.CanvasElement;
 class Pot {
 	public var width(default, null):Float;
 	public var height(default, null):Float;
+	public var size(get, never):Vec2;
 	public var pixelRatio(default, null):Float;
 
 	var app:App;
@@ -53,10 +55,13 @@ class Pot {
 		app.resized();
 	}
 
+	function get_size():Vec2 {
+		return Vec2.of(width, height);
+	}
+
 	function resize():Bool {
-		final rect = canvas.getBoundingClientRect();
-		final w = rect.width;
-		final h = rect.height;
+		final w = canvas.clientWidth;
+		final h = canvas.clientHeight;
 		final dpr = Browser.window.devicePixelRatio;
 		if (width != w || height != h || pixelRatio != dpr) {
 			width = w;
@@ -78,10 +83,10 @@ class Pot {
 		frameRateManager.stop();
 	}
 
-	function update():Void {
+	function update(substepRatio:Float):Void {
 		app.frameCount++;
 		if (app.input != null)
-			app.input.update();
+			app.input.update(substepRatio);
 		app.update();
 	}
 

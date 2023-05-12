@@ -7,7 +7,7 @@ class IndexBuffer extends GLObject {
 
 	public function new(gl:GL2) {
 		super(gl);
-		buffer = new IntBuffer(gl);
+		buffer = new IntBuffer(gl, ElementArrayBuffer);
 	}
 
 	extern public inline function bind():Void {

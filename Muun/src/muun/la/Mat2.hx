@@ -192,7 +192,7 @@ abstract Mat2(Mat2Data) from Mat2Data {
 		return a * b.inv;
 	}
 
-	@:op(A << B)
+	@:op(A <<= B)
 	extern public static inline function assign(a:Mat2, b:Mat2):Mat2 {
 		a.e00 = b.e00;
 		a.e01 = b.e01;

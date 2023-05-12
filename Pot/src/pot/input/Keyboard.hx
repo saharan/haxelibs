@@ -17,17 +17,16 @@ abstract Keyboard(KeyboardData) {
 	}
 
 	@:arrayAccess
-	inline function get(code:CodeValue):Key {
+	public inline function get(code:CodeValue):Key {
 		return safeGet(code);
 	}
 
 	@:arrayAccess
-	inline function getNum(index:Int):Key {
+	public inline function getNum(index:Int):Key {
 		return safeGet(CodeValue.DIGITS[index]);
 	}
 
-	@:extern
-	inline function safeGet(code:CodeValue):Key {
+	extern inline function safeGet(code:CodeValue):Key {
 		if (!this.keys.exists(code))
 			this.keys[code] = new Key();
 		return this.keys[code];

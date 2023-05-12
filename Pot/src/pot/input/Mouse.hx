@@ -45,6 +45,8 @@ class Mouse {
 	public var onContent(default, null):Bool;
 	public var hasInput(default, null):Bool;
 
+	var px2:Float;
+	var py2:Float;
 	var nx:Float;
 	var ny:Float;
 	var nleft:Bool;
@@ -59,6 +61,8 @@ class Mouse {
 	public function new() {
 		px = 0;
 		py = 0;
+		px2 = 0;
+		py2 = 0;
 		x = 0;
 		y = 0;
 		nx = 0;
@@ -78,6 +82,9 @@ class Mouse {
 		nleft = false;
 		nmiddle = false;
 		nright = false;
+		nleft2 = false;
+		nmiddle2 = false;
+		nright2 = false;
 		dleft = 0;
 		dmiddle = 0;
 		dright = 0;
@@ -165,11 +172,11 @@ class Mouse {
 		});
 	}
 
-	function update():Void {
+	function update(substepRatio:Float):Void {
 		px = x;
 		py = y;
-		x = nx;
-		y = ny;
+		x = px2 + substepRatio * (nx - px2);
+		y = py2 + substepRatio * (ny - py2);
 		dx = x - px;
 		dy = y - py;
 		pleft = left;
@@ -188,5 +195,9 @@ class Mouse {
 		wheelY = nwheelY;
 		nwheelX = 0;
 		nwheelY = 0;
+		if (substepRatio == 1) {
+			px2 = x;
+			py2 = y;
+		}
 	}
 }

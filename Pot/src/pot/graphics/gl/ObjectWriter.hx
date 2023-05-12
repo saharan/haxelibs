@@ -26,11 +26,11 @@ class ObjectWriter {
 	public var numVertices(default, null):Int = 0;
 
 	public function new(position:FloatBuffer, color:FloatBuffer, normal:FloatBuffer, texCoord:FloatBuffer, index:IntBuffer) {
-		positionWriter = new FloatBufferWriter(position, ArrayBuffer, DynamicDraw);
-		colorWriter = new FloatBufferWriter(color, ArrayBuffer, DynamicDraw);
-		normalWriter = new FloatBufferWriter(normal, ArrayBuffer, DynamicDraw);
-		texCoordWriter = new FloatBufferWriter(texCoord, ArrayBuffer, DynamicDraw);
-		indexWriter = new IntBufferWriter(index, ElementArrayBuffer, DynamicDraw);
+		positionWriter = new FloatBufferWriter(position, DynamicDraw);
+		colorWriter = new FloatBufferWriter(color, DynamicDraw);
+		normalWriter = new FloatBufferWriter(normal, DynamicDraw);
+		texCoordWriter = new FloatBufferWriter(texCoord, DynamicDraw);
+		indexWriter = new IntBufferWriter(index, DynamicDraw);
 	}
 
 	public function clear():Void {
@@ -40,6 +40,10 @@ class ObjectWriter {
 		texCoordWriter.clear();
 		indexWriter.clear();
 		numVertices = 0;
+	}
+
+	overload extern public inline function color(rgb:Float, a:Float = 1):Void {
+		color(rgb, rgb, rgb, a);
 	}
 
 	overload extern public inline function color(rgb:Vec3, a:Float = 1):Void {

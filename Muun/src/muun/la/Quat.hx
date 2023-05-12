@@ -235,7 +235,7 @@ abstract Quat(QuatData) from QuatData {
 		return unary(b, b -> a / b);
 	}
 
-	@:op(A << B)
+	@:op(A <<= B)
 	extern public static inline function assign(a:Quat, b:Quat):Quat {
 		a.x = b.x;
 		a.y = b.y;

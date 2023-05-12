@@ -7,16 +7,25 @@ import js.html.webgl.GL2;
 class FrameBuffer extends GLObject {
 	public final textures:Array<Texture>;
 
-	public final width:Int;
-	public final height:Int;
+	public var width(default, null):Int;
+	public var height(default, null):Int;
 
 	final depth:Renderbuffer;
 	final framebuffer:Framebuffer;
 
-	@:allow(pot.graphics.gl.Graphics)
-	function new(gl:GL2, textures:Array<Texture>) {
+	@:allow(pot.graphics.gl.Graphics, pot.graphics.gl.Texture)
+	function new(gl:GL2, textures:Array<Texture>, init:Bool) {
 		super(gl);
 		this.textures = textures.copy();
+		depth = gl.createRenderbuffer();
+		framebuffer = gl.createFramebuffer();
+		if (init) {
+			initBuffers();
+		}
+	}
+
+	@:allow(pot.graphics.gl.Texture)
+	function initBuffers():Void {
 		width = textures[0].width;
 		height = textures[0].height;
 		final type = textures[0].type;
@@ -28,12 +37,6 @@ class FrameBuffer extends GLObject {
 				throw "all texture sizes must be the same";
 			}
 		}
-		depth = gl.createRenderbuffer();
-		framebuffer = gl.createFramebuffer();
-		initBuffers();
-	}
-
-	function initBuffers():Void {
 		// init depth buffer
 		gl.bindRenderbuffer(GL2.RENDERBUFFER, depth);
 		gl.renderbufferStorage(GL2.RENDERBUFFER, GL2.DEPTH_COMPONENT32F, width, height);

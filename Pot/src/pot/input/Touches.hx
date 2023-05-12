@@ -76,11 +76,11 @@ abstract Touches(TouchesData) {
 		elem.addEventListener("touchcancel", end);
 	}
 
-	inline function update():Void {
+	inline function update(substepRatio:Float):Void {
 		var i = 0;
 		while (i < this.touches.length) {
 			var touch = this.touches[i];
-			touch.update();
+			touch.update(substepRatio);
 			if (!touch.ptouching && !touch.touching && !touch.ntouching) {
 				// outdated
 				this.touches.remove(touch);

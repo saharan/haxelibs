@@ -167,7 +167,7 @@ abstract Vec4(Vec4Data) from Vec4Data {
 		return unary(b, b -> a / b);
 	}
 
-	@:op(A << B)
+	@:op(A <<= B)
 	extern public static inline function assign(a:Vec4, b:Vec4):Vec4 {
 		a.x = b.x;
 		a.y = b.y;

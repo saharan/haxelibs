@@ -7,7 +7,6 @@ import pot.graphics.gl.low.FloatBuffer;
 
 class FloatBufferWriter {
 	public final buffer:FloatBuffer;
-	public var kind:BufferKind;
 	public var usage:BufferUsage;
 	public var data(default, null):Float32Array = new Float32Array(512);
 	public var length(default, null):Int = 0;
@@ -15,9 +14,8 @@ class FloatBufferWriter {
 	var maxLength:Int;
 	var changed:Bool = false;
 
-	public function new(buffer:FloatBuffer, kind:BufferKind, usage:BufferUsage) {
+	public function new(buffer:FloatBuffer, usage:BufferUsage) {
 		this.buffer = buffer;
-		this.kind = kind;
 		this.usage = usage;
 		maxLength = data.length;
 	}
@@ -68,11 +66,11 @@ class FloatBufferWriter {
 	extern public inline function upload(force:Bool = false):Void {
 		if (changed || force) {
 			changed = false;
-			buffer.upload(kind, new Float32Array(data.buffer, 0, length), usage);
+			buffer.upload(new Float32Array(data.buffer, 0, length), usage);
 		}
 	}
 
-	extern inline function expand():Void {
+	function expand():Void {
 		final oldData = data;
 		data = new Float32Array(maxLength <<= 1);
 		data.set(oldData);

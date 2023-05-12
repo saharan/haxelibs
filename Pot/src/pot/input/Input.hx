@@ -32,9 +32,9 @@ class Input {
 	}
 
 	@:allow(pot.core.Pot)
-	function update():Void {
-		mouse.update();
-		touches.update();
+	function update(substepRatio:Float):Void {
+		mouse.update(substepRatio);
+		touches.update(substepRatio);
 		if (keyboard != null)
 			keyboard.update();
 		if (touches.length > 0)

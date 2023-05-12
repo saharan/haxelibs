@@ -20,7 +20,8 @@ class Texture extends GLObject {
 	public var height(default, null):Int;
 
 	final texture:js.html.webgl.Texture;
-	final framebuffer:Framebuffer; // just for downloading pixels
+
+	public final frameBuffer:FrameBuffer;
 
 	var texWrapU:TextureWrap;
 	var texWrapV:TextureWrap;
@@ -36,7 +37,7 @@ class Texture extends GLObject {
 		texFilter = Linear;
 
 		texture = gl.createTexture();
-		framebuffer = gl.createFramebuffer();
+		frameBuffer = new FrameBuffer(gl, [this], false);
 	}
 
 	public function getRawTexture():js.html.webgl.Texture {
@@ -89,14 +90,16 @@ class Texture extends GLObject {
 	}
 
 	@:allow(pot.graphics.gl.Graphics)
-	function load(source:BitmapSource, type:TextureType):Void {
+	function load(source:BitmapSource, type:TextureType, flipY:Bool = true):Void {
 		this.width = source.width;
 		this.height = source.height;
 		this.type = type;
 
+		gl.pixelStorei(GL2.UNPACK_FLIP_Y_WEBGL, cast flipY);
 		gl.bindTexture(GL2.TEXTURE_2D, texture);
 		gl.texImage2D(GL2.TEXTURE_2D, 0, internalFormatWrap(), formatWrap(), type, cast source.source);
 		gl.bindTexture(GL2.TEXTURE_2D, null);
+		gl.pixelStorei(GL2.UNPACK_FLIP_Y_WEBGL, cast true);
 
 		switch type {
 			case Int32 | UInt32:
@@ -166,7 +169,7 @@ class Texture extends GLObject {
 			throw "not an 8-bit integer texture";
 		if (pixelsRGBA.length != width * height * 4)
 			throw "dimensions mismatch";
-		gl.bindFramebuffer(GL2.FRAMEBUFFER, framebuffer);
+		gl.bindFramebuffer(GL2.FRAMEBUFFER, frameBuffer.getRawFrameBuffer());
 		gl.readPixels(xOffset, yOffset, width, height, formatWrap(), GL2.UNSIGNED_BYTE, pixelsRGBA);
 		gl.bindFramebuffer(GL2.FRAMEBUFFER, null);
 	}
@@ -176,7 +179,7 @@ class Texture extends GLObject {
 			throw "not a 32-bit integer texture";
 		if (pixelsRGBA.length != width * height * 4)
 			throw "dimensions mismatch";
-		gl.bindFramebuffer(GL2.FRAMEBUFFER, framebuffer);
+		gl.bindFramebuffer(GL2.FRAMEBUFFER, frameBuffer.getRawFrameBuffer());
 		gl.readPixels(xOffset, yOffset, width, height, formatWrap(), GL2.INT, pixelsRGBA);
 		gl.bindFramebuffer(GL2.FRAMEBUFFER, null);
 	}
@@ -186,7 +189,7 @@ class Texture extends GLObject {
 			throw "not an unsigned 32-bit integer texture";
 		if (pixelsRGBA.length != width * height * 4)
 			throw "dimensions mismatch";
-		gl.bindFramebuffer(GL2.FRAMEBUFFER, framebuffer);
+		gl.bindFramebuffer(GL2.FRAMEBUFFER, frameBuffer.getRawFrameBuffer());
 		gl.readPixels(xOffset, yOffset, width, height, formatWrap(), GL2.UNSIGNED_INT, pixelsRGBA);
 		gl.bindFramebuffer(GL2.FRAMEBUFFER, null);
 	}
@@ -196,13 +199,13 @@ class Texture extends GLObject {
 			throw "not a 32-bit floating point texture";
 		if (pixelsRGBA.length != width * height * 4)
 			throw "dimensions mismatch";
-		gl.bindFramebuffer(GL2.FRAMEBUFFER, framebuffer);
+		gl.bindFramebuffer(GL2.FRAMEBUFFER, frameBuffer.getRawFrameBuffer());
 		gl.readPixels(xOffset, yOffset, width, height, formatWrap(), GL2.FLOAT, pixelsRGBA);
 		gl.bindFramebuffer(GL2.FRAMEBUFFER, null);
 	}
 
 	public function sync():Void {
-		gl.bindFramebuffer(GL2.FRAMEBUFFER, framebuffer);
+		gl.bindFramebuffer(GL2.FRAMEBUFFER, frameBuffer.getRawFrameBuffer());
 		gl.readPixels(0, 0, 1, 1, formatWrap(), type, switch type {
 			case Int8:
 				new Uint8Array(4);
@@ -219,9 +222,7 @@ class Texture extends GLObject {
 	}
 
 	function initFBO():Void {
-		gl.bindFramebuffer(GL2.FRAMEBUFFER, framebuffer);
-		gl.framebufferTexture2D(GL2.FRAMEBUFFER, GL2.COLOR_ATTACHMENT0, GL2.TEXTURE_2D, texture, 0);
-		gl.bindFramebuffer(GL2.FRAMEBUFFER, null);
+		frameBuffer.initBuffers();
 	}
 
 	public inline function filter(filter:TextureFilter, enableMipmapping:Bool = false):Void {
@@ -260,6 +261,6 @@ class Texture extends GLObject {
 
 	function disposeImpl():Void {
 		gl.deleteTexture(texture);
-		gl.deleteFramebuffer(framebuffer);
+		frameBuffer.dispose();
 	}
 }

@@ -166,7 +166,7 @@ abstract Vec3(Vec3Data) from Vec3Data {
 		return unary(b, b -> a / b);
 	}
 
-	@:op(A << B)
+	@:op(A <<= B)
 	extern public static inline function assign(a:Vec3, b:Vec3):Vec3 {
 		a.x = b.x;
 		a.y = b.y;

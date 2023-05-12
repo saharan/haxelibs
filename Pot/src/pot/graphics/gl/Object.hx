@@ -28,7 +28,7 @@ class Object extends GLObject {
 		final defaultAttribs = DefaultShader.attributes;
 		inline function vbuf(size:Int):VertexBuffer {
 			return {
-				buffer: Float(new FloatBuffer(gl)),
+				buffer: Float(new FloatBuffer(gl, ArrayBuffer)),
 				size: size,
 				stride: 0,
 				offset: 0
