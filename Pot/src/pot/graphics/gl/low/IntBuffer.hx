@@ -5,6 +5,8 @@ import js.html.webgl.GL2;
 import js.lib.Int32Array;
 
 class IntBuffer extends GLObject {
+	static inline final USE_SUB_DATA:Bool = false;
+
 	final kind:BufferKind;
 	final buffer:Buffer;
 
@@ -23,7 +25,7 @@ class IntBuffer extends GLObject {
 
 	public function upload(data:Int32Array, usage:BufferUsage):Void {
 		length = data.length;
-		if (length > capacity) {
+		if (!USE_SUB_DATA || length > capacity) {
 			gl.bindBuffer(kind, buffer);
 			gl.bufferData(kind, data, usage);
 			gl.bindBuffer(kind, null);

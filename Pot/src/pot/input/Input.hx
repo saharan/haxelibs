@@ -9,6 +9,7 @@ import pot.core.Pot;
  * ...
  */
 class Input {
+	public var pointer(default, null):Pointer;
 	public var mouse(default, null):Mouse;
 	public var touches(default, null):Touches;
 	public var keyboard(default, null):Keyboard;
@@ -17,6 +18,7 @@ class Input {
 
 	@:allow(pot.core.App)
 	function new(canvas:CanvasElement, pot:Pot, target:Element, captureKey:Bool, captureWheel:Bool) {
+		pointer = new Pointer(this);
 		mouse = new Mouse();
 		touches = new Touches();
 		keyboard = captureKey ? new Keyboard() : null;
@@ -39,5 +41,6 @@ class Input {
 			keyboard.update();
 		if (touches.length > 0)
 			mouse.hasInput = false;
+		pointer.update();
 	}
 }

@@ -1,5 +1,6 @@
 package pot.graphics.gl;
 
+import js.html.webgl.Extension;
 import pot.graphics.gl.low.BufferKind;
 import haxe.ds.Vector;
 import js.html.CanvasElement;
@@ -38,6 +39,7 @@ class Graphics {
 
 	var cameraFov:Float;
 	var cameraFovMode:FovMode;
+	var cameraPerspective:Bool;
 	var cameraNear:Float;
 	var cameraFar:Float;
 	var cameraSet:Bool = false;
@@ -88,6 +90,8 @@ class Graphics {
 	final unitSphereVs:Array<Vec3> = [];
 	final unitSphereIs:Array<Array<Int>> = [];
 
+	var floatBlendEnabled:Bool = false;
+
 	public function new(canvas:CanvasElement) {
 		this.canvas = canvas;
 		// gl = untyped WebGLDebugUtils.makeDebugContext(canvas.getContextWebGL2({
@@ -96,7 +100,8 @@ class Graphics {
 		// }));
 		gl = canvas.getContextWebGL2({
 			premultipliedAlpha: false,
-			preserveDrawingBuffer: true
+			preserveDrawingBuffer: true,
+			stencil: true
 		});
 
 		initGL();
@@ -140,6 +145,7 @@ class Graphics {
 		gl.getExtension(OES_texture_float_linear);
 		gl.getExtension(OES_texture_half_float_linear);
 		gl.getExtension(EXT_color_buffer_float);
+		floatBlendEnabled = gl.getExtension("EXT_float_blend") != null; // Safari on iOS sucks
 
 		gl.enable(GL2.SCISSOR_TEST);
 		gl.disable(GL2.DEPTH_TEST);
@@ -171,8 +177,8 @@ class Graphics {
 		noTexture();
 	}
 
-	public function transformFeedback(shader:Shader, uniformMap:UniformMap, inputs:Array<VertexAttribute>, outputs:Array<FloatBuffer>,
-			vertexCount:Int):Void {
+	public function transformFeedback(shader:Shader, uniformMap:UniformMap, inputs:Array<VertexAttribute>,
+			outputs:Array<FloatBuffer>, vertexCount:Int):Void {
 		sceneCheck(false, "cannot perform transform feedbacks inside a scene");
 		shader.bind([uniformMap]);
 		tf.bind();
@@ -216,7 +222,7 @@ class Graphics {
 	public function screen(width:Float, height:Float):Void {
 		screenWidth = width;
 		screenHeight = height;
-		updatePerspectiveMatrix();
+		updateProjectionMatrix();
 	}
 
 	public function viewport(x:Int, y:Int, width:Int, height:Int):Void {
@@ -278,7 +284,8 @@ class Graphics {
 		updateViewport();
 
 		if (!cameraSet) {
-			defaultCameraPos.set(screenWidth * 0.5, screenHeight * 0.5, -screenHeight / (2 * Math.tan(computeFovY() * 0.5)));
+			defaultCameraPos.set(screenWidth * 0.5, screenHeight * 0.5,
+				-screenHeight / (2 * Math.tan(computeFovY() * 0.5)));
 			viewMat <<= Mat4.lookAt(defaultCameraPos, defaultCameraPos.xy.extend(0), -Vec3.ey);
 		}
 	}
@@ -310,15 +317,49 @@ class Graphics {
 		}
 	}
 
-	public inline function enableDepthTest():Void {
+	public function enableDepthTest():Void {
 		gl.enable(GL2.DEPTH_TEST);
 	}
 
-	public inline function disableDepthTest():Void {
+	public function disableDepthTest():Void {
 		gl.disable(GL2.DEPTH_TEST);
 	}
 
-	public inline function culling(face:Face):Void {
+	public function enableStencilTest():Void {
+		gl.enable(GL2.STENCIL_TEST);
+	}
+
+	public function disableStencilTest():Void {
+		gl.disable(GL2.STENCIL_TEST);
+	}
+
+	public function clearStencil(value:Int):Void {
+		gl.clearStencil(value);
+		gl.clear(GL2.STENCIL_BUFFER_BIT);
+	}
+
+	public function stencilFunc(func:StencilFunc, ref:Int, mask:Int = -1):Void {
+		gl.stencilFunc(func, ref, mask);
+	}
+
+	public function stencilOp(stencilFail:StencilOp = Keep, depthFail:StencilOp = Keep, pass:StencilOp = Keep):Void {
+		gl.stencilOp(stencilFail, depthFail, pass);
+	}
+
+	public function stencilOpSeparate(face:StencilFace, stencilFail:StencilOp = Keep, depthFail:StencilOp = Keep,
+			pass:StencilOp = Keep):Void {
+		gl.stencilOpSeparate(face, stencilFail, depthFail, pass);
+	}
+
+	public function colorMask(red:Bool = true, green:Bool = true, blue:Bool = true, alpha:Bool = true):Void {
+		gl.colorMask(red, green, blue, alpha);
+	}
+
+	public function depthMask(depth:Bool = true):Void {
+		gl.depthMask(depth);
+	}
+
+	public function culling(face:Face):Void {
 		if (face == None) {
 			gl.disable(GL2.CULL_FACE);
 		} else {
@@ -327,7 +368,7 @@ class Graphics {
 		}
 	}
 
-	public inline function clearInt(r:Int, g:Int, b:Int, ?a:Int = 0):Void {
+	public function clearInt(r:Int, g:Int, b:Int, ?a:Int = 0):Void {
 		sceneCheck(true, "begin scene before clear scene");
 		if (currentRenderTarget == null || currentRenderTarget.textures[0].type != Int32)
 			throw "current render target is not signed 32-bit integer texture(s)";
@@ -338,7 +379,7 @@ class Graphics {
 		gl.clear(GL2.DEPTH_BUFFER_BIT);
 	}
 
-	public inline function clearUInt(r:UInt, g:UInt, b:UInt, ?a:UInt = 0):Void {
+	public function clearUInt(r:UInt, g:UInt, b:UInt, ?a:UInt = 0):Void {
 		sceneCheck(true, "begin scene before clear scene");
 		if (currentRenderTarget == null || currentRenderTarget.textures[0].type != UInt32)
 			throw "current render target is not unsigned 32-bit integer texture(s)";
@@ -374,7 +415,8 @@ class Graphics {
 		gl.clear(GL2.COLOR_BUFFER_BIT | GL2.DEPTH_BUFFER_BIT);
 	}
 
-	public function createShader(vertexSource:String, fragmentSource:String, ?transformFeedbackOutput:TransformFeedbackOutput):Shader {
+	public function createShader(vertexSource:String, fragmentSource:String,
+			?transformFeedbackOutput:TransformFeedbackOutput):Shader {
 		var shader = new Shader(gl);
 		shader.compile(vertexSource, fragmentSource, transformFeedbackOutput);
 		return shader;
@@ -395,20 +437,23 @@ class Graphics {
 		currentShader = tmp;
 	}
 
-	public function createTexture(width:Int, height:Int, type:TextureType = Int8):Texture {
+	public function createTexture(width:Int, height:Int, format:TextureFormat = RGBA,
+			?type:TextureType = Int8):Texture {
 		final tex = new Texture(gl);
-		tex.init(width, height, type);
+		tex.init(width, height, format, type);
 		return tex;
 	}
 
-	public function loadBitmap(source:BitmapSource, type:TextureType = Int8, flipY:Bool = true):Texture {
+	public function loadBitmap(source:BitmapSource, format:TextureFormat = RGBA, type:TextureType = Int8,
+			?flipY:Bool = true):Texture {
 		final tex = new Texture(gl);
-		tex.load(source, type, flipY);
+		tex.load(source, format, type, flipY);
 		return tex;
 	}
 
-	public function loadBitmapTo(dst:Texture, source:BitmapSource, type:TextureType = Int8, flipY:Bool = true):Void {
-		dst.load(source, type, flipY);
+	public function loadBitmapTo(dst:Texture, source:BitmapSource, format:TextureFormat = RGBA,
+			?type:TextureType = Int8, flipY:Bool = true):Void {
+		dst.load(source, format, type, flipY);
 	}
 
 	public function createFloatBuffer(kind:BufferKind):FloatBuffer {
@@ -580,6 +625,10 @@ class Graphics {
 		scale(s.x, s.y, s.z);
 	}
 
+	overload extern public inline function scale(s:Float):Void {
+		modelMat <<= modelMat * Vec4.of(s, s, s, 1).diag;
+	}
+
 	overload extern public inline function scale(sx:Float, sy:Float, sz:Float = 1):Void {
 		modelMat <<= modelMat * Vec4.of(sx, sy, sz, 1).diag;
 	}
@@ -612,7 +661,11 @@ class Graphics {
 		modelMat <<= modelMat * Mat4.translate(t.extend(0));
 	}
 
-	extern public inline function transform(mat:Mat4):Void {
+	overload extern public inline function transform(mat:Mat3):Void {
+		modelMat <<= modelMat * mat.toMat4();
+	}
+
+	overload extern public inline function transform(mat:Mat4):Void {
 		modelMat <<= modelMat * mat;
 	}
 
@@ -628,15 +681,24 @@ class Graphics {
 		viewMat <<= Mat4.lookAt(cameraPos, cameraAt, cameraUp);
 	}
 
-	public inline function perspective(?fov:Float, ?fovMode:FovMode = FovY, ?near:Float = 0.1, ?far:Float = 10000):Void {
+	public inline function perspective(?fov:Float, ?fovMode:FovMode = FovY, ?near:Float = 0.1,
+			?far:Float = 10000):Void {
 		if (fov == null) {
 			fov = Math.PI / 3;
 		}
+		cameraPerspective = true;
 		cameraFov = fov;
 		cameraFovMode = fovMode;
 		cameraNear = near;
 		cameraFar = far;
-		updatePerspectiveMatrix();
+		updateProjectionMatrix();
+	}
+
+	public inline function orthographic(?near:Float = 0.1, ?far:Float = 10000):Void {
+		cameraPerspective = false;
+		cameraNear = near;
+		cameraFar = far;
+		updateProjectionMatrix();
 	}
 
 	function computeFovY():Float {
@@ -658,12 +720,16 @@ class Graphics {
 		}
 	}
 
-	inline function updatePerspectiveMatrix():Void {
-		projMat <<= Mat4.perspective(computeFovY(), screenWidth / screenHeight, cameraNear, cameraFar);
+	inline function updateProjectionMatrix():Void {
+		if (cameraPerspective) {
+			projMat <<= Mat4.perspective(computeFovY(), screenWidth / screenHeight, cameraNear, cameraFar);
+		} else {
+			projMat <<= Mat4.orthographic(screenWidth, screenHeight, cameraNear, cameraFar);
+		}
 	}
 
-	public function image(img:Texture, srcX:Float, srcY:Float, srcW:Float, srcH:Float, dstX:Float, dstY:Float, dstW:Float,
-			dstH:Float):Void {
+	public function image(img:Texture, srcX:Float, srcY:Float, srcW:Float, srcH:Float, dstX:Float, dstY:Float,
+			dstW:Float, dstH:Float):Void {
 		withTexture(img, () -> {
 			final sw = 1 / img.width;
 			final sh = 1 / img.height;
@@ -741,10 +807,11 @@ class Graphics {
 		unitSphereVs.resize(0);
 		unitSphereVs.push(Vec3.of(0, 1, 0));
 		for (i in 1...divH - 1) {
-			final theta = i / divH * Math.PI;
+			final theta = i / (divH - 1) * Math.PI;
 			for (j in 0...divV) {
 				final phi = j / divV * Math.PI * 2;
-				unitSphereVs.push(Vec3.of(Math.sin(theta) * Math.cos(phi), Math.cos(theta), -Math.sin(theta) * Math.sin(phi)));
+				unitSphereVs.push(Vec3.of(Math.sin(theta) * Math.cos(phi), Math.cos(theta),
+					-Math.sin(theta) * Math.sin(phi)));
 			}
 		}
 		unitSphereVs.push(Vec3.of(0, -1, 0));
@@ -789,8 +856,8 @@ class Graphics {
 		currentTexture = tmpTex;
 	}
 
-	overload extern public inline function triangle(x1:Float, y1:Float, z1:Float, x2:Float, y2:Float, z2:Float, x3:Float, y3:Float,
-			z3:Float):Void {
+	overload extern public inline function triangle(x1:Float, y1:Float, z1:Float, x2:Float, y2:Float, z2:Float,
+			x3:Float, y3:Float, z3:Float):Void {
 		triangleImpl(x1, y1, z1, x2, y2, z2, x3, y3, z3);
 	}
 
@@ -806,7 +873,8 @@ class Graphics {
 		triangleImpl(v1.x, v1.y, 0, v2.x, v2.y, 0, v3.x, v3.y, 0);
 	}
 
-	function triangleImpl(x1:Float, y1:Float, z1:Float, x2:Float, y2:Float, z2:Float, x3:Float, y3:Float, z3:Float):Void {
+	function triangleImpl(x1:Float, y1:Float, z1:Float, x2:Float, y2:Float, z2:Float, x3:Float, y3:Float,
+			z3:Float):Void {
 		withTexture(null, () -> {
 			shaping(Triangles, () -> {
 				var x12 = x2 - x1;
@@ -874,8 +942,8 @@ class Graphics {
 		endShape();
 	}
 
-	function boxFace(x1:Float, y1:Float, z1:Float, x2:Float, y2:Float, z2:Float, x3:Float, y3:Float, z3:Float, x4:Float, y4:Float,
-			z4:Float):Void {
+	function boxFace(x1:Float, y1:Float, z1:Float, x2:Float, y2:Float, z2:Float, x3:Float, y3:Float, z3:Float,
+			x4:Float, y4:Float, z4:Float):Void {
 		vertex(x1, y1, z1);
 		vertex(x2, y2, z2);
 		vertex(x3, y3, z3);
@@ -884,8 +952,8 @@ class Graphics {
 		vertex(x4, y4, z4);
 	}
 
-	function boxFaceUV(x1:Float, y1:Float, z1:Float, x2:Float, y2:Float, z2:Float, x3:Float, y3:Float, z3:Float, x4:Float, y4:Float,
-			z4:Float):Void {
+	function boxFaceUV(x1:Float, y1:Float, z1:Float, x2:Float, y2:Float, z2:Float, x3:Float, y3:Float, z3:Float,
+			x4:Float, y4:Float, z4:Float):Void {
 		texCoord(0, 0);
 		vertex(x1, y1, z1);
 		texCoord(0, 1);
@@ -1062,7 +1130,17 @@ class Graphics {
 		return localObjWriter.vertex(x, y, z, addIndex);
 	}
 
-	public inline function index(i:Int):Void {
+	overload extern public inline function index(i1:Int, i2:Int, i3:Int):Void {
+		shapeCheck(true, "begin shape before index");
+		localObjWriter.index(i1, i2, i3);
+	}
+
+	overload extern public inline function index(i1:Int, i2:Int):Void {
+		shapeCheck(true, "begin shape before index");
+		localObjWriter.index(i1, i2);
+	}
+
+	overload extern public inline function index(i:Int):Void {
 		shapeCheck(true, "begin shape before index");
 		localObjWriter.index(i);
 	}
@@ -1096,7 +1174,6 @@ class Graphics {
 		shapeCheck(true, "shape already ended");
 		shapeOpen = false;
 		localObjWriter.upload();
-		localObj.material.shader = chooseShader();
 		drawObject(localObj);
 	}
 
@@ -1143,15 +1220,15 @@ class Graphics {
 		map.set(uf.matrix.transform.name, toMat4(projMat * modelViewMat));
 		map.set(uf.matrix.invModelView.name, toMat4(invModelViewMat));
 		map.set(uf.matrix.normal.name, toMat3(invModelViewMat.t.toMat3()));
-		map.set(uf.material.texture.name, UniformValue.Sampler(currentTexture));
+		map.set(uf.material.texture.name, Sampler(currentTexture));
 
-		map.set(uf.material.ambient.name, UniformValue.Float(materialAmb));
-		map.set(uf.material.diffuse.name, UniformValue.Float(materialDif));
-		map.set(uf.material.specular.name, UniformValue.Float(materialSpc));
-		map.set(uf.material.shininess.name, UniformValue.Float(materialShn));
-		map.set(uf.material.emission.name, UniformValue.Float(materialEmi));
+		map.set(uf.material.ambient.name, Float(materialAmb));
+		map.set(uf.material.diffuse.name, Float(materialDif));
+		map.set(uf.material.specular.name, Float(materialSpc));
+		map.set(uf.material.shininess.name, Float(materialShn));
+		map.set(uf.material.emission.name, Float(materialEmi));
 
-		map.set(uf.numLights.name, UniformValue.Int(numLights));
+		map.set(uf.numLights.name, Int(numLights));
 		for (i in 0...numLights) {
 			map.set(uf.lights[i].position.name, toVec4(viewMat * lightBuf[i].pos));
 			map.set(uf.lights[i].normal.name, toVec3(viewMat.toMat3() * lightBuf[i].nor));
@@ -1160,13 +1237,21 @@ class Graphics {
 	}
 
 	public function drawObject(obj:Object):Void {
+		final tmp = obj.material.shader;
+		if (tmp == null)
+			obj.material.shader = chooseShader();
 		prepareUniforms();
 		obj.draw(defaultUniformMap);
+		obj.material.shader = tmp;
 	}
 
 	public function drawObjectInstanced(obj:Object, instanceCount:Int):Void {
+		final tmp = obj.material.shader;
+		if (tmp == null)
+			obj.material.shader = chooseShader();
 		prepareUniforms();
 		obj.drawInstanced(defaultUniformMap, instanceCount);
+		obj.material.shader = tmp;
 	}
 
 	/**
@@ -1276,6 +1361,18 @@ class Graphics {
 		final m = (projMat * viewMat * modelMat).inv;
 		final local = m * screen.extend(1);
 		return local.xyz / local.w;
+	}
+
+	extern public inline function getModelMatrix():Mat4 {
+		return modelMat;
+	}
+
+	extern public inline function getViewMatrix():Mat4 {
+		return viewMat;
+	}
+
+	extern public inline function getProjectionMatrix():Mat4 {
+		return projMat;
 	}
 }
 

@@ -1,7 +1,8 @@
 package pot.core;
 
 import js.Browser;
-import js.lib.Date;
+import pot.concurrent.Async;
+import pot.concurrent.Blocker;
 
 /**
  * An accurate timer for frames
@@ -15,7 +16,7 @@ class FrameRateManager {
 	static inline final MIN_UPDATE_TIME:Float = 4;
 	static inline final MAX_FRAMERATE_RATIO:Float = 4;
 
-	final update:(substepRatio:Float) -> Void;
+	final update:(substepRatio:Float, callback:() -> Void) -> Void;
 	final draw:() -> Void;
 	var targetInterval:Float = 1000 / 60;
 	var prevTime:Float;
@@ -24,9 +25,10 @@ class FrameRateManager {
 	var running:Bool;
 	var count:Int = 0;
 
+	public var frameSkipEnabled:Bool = true;
 	public var doNotAdjust:Bool = false;
 
-	public function new(update:(substepRatio:Float) -> Void, draw:() -> Void) {
+	public function new(update:(substepRatio:Float, callback:() -> Void) -> Void, draw:() -> Void) {
 		this.update = update;
 		this.draw = draw;
 	}
@@ -51,26 +53,34 @@ class FrameRateManager {
 	}
 
 	function loop():Void {
+		Async.begin();
 		if (!running)
 			return;
 		count++;
 		if (doNotAdjust) {
-			doFunc(() -> update(1));
+			final blocker = new Blocker();
+			doFunc(() -> update(1, blocker.unblock));
+			Async.await(blocker.value);
 			doFunc(draw);
 		} else {
 			final currentTime = now();
 
-			final maxDrawBegin = max(lastDrawBegin + targetInterval * MAX_FRAMERATE_RATIO, currentTime + MIN_UPDATE_TIME);
-			final maxUpdateCount = count < 10 ? 1 : max(1, Math.round((maxDrawBegin - currentTime) / estimatedUpdateTime));
-			final idealUpdateCount = Math.round((currentTime - prevTime) / max(targetInterval * 0.01,
-				targetInterval - estimatedUpdateTime));
+			final maxDrawBegin = max(lastDrawBegin + targetInterval * MAX_FRAMERATE_RATIO, currentTime +
+				MIN_UPDATE_TIME);
+			final maxUpdateCount = !frameSkipEnabled || count < 10 ? 1 : max(1,
+				Math.round((maxDrawBegin - currentTime) / estimatedUpdateTime));
+			final idealUpdateCountFloat = (currentTime - prevTime) / max(targetInterval * 0.01,
+				targetInterval - estimatedUpdateTime);
+			final idealUpdateCount = idealUpdateCountFloat > 0.2 && idealUpdateCountFloat < 1.8 ? 1 : Math.round(idealUpdateCountFloat);
 			final updateCount = min(idealUpdateCount, maxUpdateCount);
 
 			if (updateCount > 0) {
 				var p = currentTime;
 				var nextLast = false;
 				for (i in 0...updateCount) {
-					doFunc(() -> update(nextLast ? 1 : (i + 1) / updateCount));
+					final blocker = new Blocker();
+					doFunc(() -> update(nextLast ? 1 : (i + 1) / updateCount, blocker.unblock));
+					Async.await(blocker.value);
 					final n = now();
 					final updateTime = n - p;
 					estimatedUpdateTime += (updateTime - estimatedUpdateTime) * 0.5;
@@ -82,43 +92,12 @@ class FrameRateManager {
 						nextLast = true;
 				}
 				prevTime = max(prevTime, p - max(targetInterval * MAX_FRAMERATE_RATIO, MIN_UPDATE_TIME));
-				// trace(prevTime + " " + p + " " + (p - prevTime) + " behind " + (maxDrawBegin - p) + " " + maxUpdateCount + " " +
-				// 	idealUpdateCount);
 				lastDrawBegin = p;
 				doFunc(draw);
 			}
-
-			// final maxConsecutiveUpdates = count > 10 ? MAX_UPDATE_COUNT : 1;
-			// final updateCount = min(MAX_UPDATE_COUNT, Math.round(idealUpdateCount));
-			// if (updateCount > 0) {
-			// 	for (i in 0...updateCount) {
-			// 		doFunc(update);
-			// 		prevTime += targetInterval;
-			// 	}
-			// }
-
-			// while (currentTime - prevTime > targetInterval * 0.5) {
-			// 	updateCount++;
-			// 	doFunc(update);
-			// 	updated = true;
-			// 	prevTime += targetInterval;
-			// 	final now = now();
-			// 	final updateTime = now - currentTime;
-			// 	estimatedUpdateTime = max(estimatedUpdateTime * 0.9, updateTime);
-			// 	final maxConsecutiveUpdates = count > 30 ? MAX_UPDATE_COUNT : 1;
-			// 	if (updateTime > targetInterval * UPDATE_LOAD_COEFF || updateCount >= maxConsecutiveUpdates) { // overloaded
-			// 		if (prevTime < now - targetInterval) { // do not accumulate too much
-			// 			prevTime = now - targetInterval;
-			// 		}
-			// 		break;
-			// 	}
-			// }
-			// if (updated) {
-			// 	lastDrawBegin = now();
-			// 	doFunc(draw);
-			// }
 		}
 		Browser.window.requestAnimationFrame(cast loop);
+		Async.end();
 	}
 
 	extern inline function doFunc(f:() -> Void):Void {

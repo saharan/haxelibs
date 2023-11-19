@@ -38,7 +38,7 @@ class RenderTexture {
 
 	overload extern public inline function render(flipBuffer:Bool = true):Void {
 		render(() -> {
-			g.clear(0, 0, 0);
+			g.clear(0);
 			g.fullScreenRect();
 		}, flipBuffer);
 	}

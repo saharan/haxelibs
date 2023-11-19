@@ -13,11 +13,13 @@ class Pot {
 	public var height(default, null):Float;
 	public var size(get, never):Vec2;
 	public var pixelRatio(default, null):Float;
+	public var asyncUpdate:Bool = false;
 
 	var app:App;
 	var canvas:CanvasElement;
 	var frameRateManager:FrameRateManager;
 	var obs:ResizeObserver;
+	var onEndUpdate:() -> Void = null;
 
 	var sticking:Element;
 
@@ -38,6 +40,10 @@ class Pot {
 				frameRateManager.setFrameRate(fps);
 				frameRateManager.doNotAdjust = false;
 		}
+	}
+
+	public function frameSkip(enable:Bool):Void {
+		frameRateManager.frameSkipEnabled = enable;
 	}
 
 	public function isMobile():Bool {
@@ -83,11 +89,24 @@ class Pot {
 		frameRateManager.stop();
 	}
 
-	function update(substepRatio:Float):Void {
+	function update(substepRatio:Float, callback:() -> Void):Void {
 		app.frameCount++;
 		if (app.input != null)
 			app.input.update(substepRatio);
-		app.update();
+		if (asyncUpdate) {
+			onEndUpdate = callback;
+			app.update();
+		} else {
+			app.update();
+			callback();
+		}
+	}
+
+	public function endUpdate():Void {
+		assert(asyncUpdate, "enable async update is disabled");
+		assert(onEndUpdate != null, "callback function not set");
+		onEndUpdate();
+		onEndUpdate = null;
 	}
 
 	function draw():Void {

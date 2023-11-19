@@ -1,12 +1,8 @@
 package pot.graphics.gl;
 
-import js.lib.Int32Array;
-import haxe.ds.Vector;
-import haxe.io.UInt8Array;
-import js.html.webgl.Framebuffer;
 import js.html.webgl.GL2;
-import js.lib.ArrayBuffer;
 import js.lib.Float32Array;
+import js.lib.Int32Array;
 import js.lib.Uint16Array;
 import js.lib.Uint32Array;
 import js.lib.Uint8Array;
@@ -27,6 +23,7 @@ class Texture extends GLObject {
 	var texWrapV:TextureWrap;
 	var texFilter:TextureFilter;
 
+	public var format(default, null):TextureFormat;
 	public var type(default, null):TextureType;
 
 	@:allow(pot.graphics.gl.Graphics)
@@ -45,33 +42,73 @@ class Texture extends GLObject {
 	}
 
 	function internalFormatWrap():Int {
-		return switch type {
-			case Int8:
+		return switch [format, type] {
+			case [R, Int8]:
+				GL2.R8;
+			case [RGB, Int8]:
+				GL2.RGB8;
+			case [RGBA, Int8]:
 				GL2.RGBA8;
-			case Int32:
+			case [R, Int32]:
+				GL2.R32I;
+			case [RGB, Int32]:
+				GL2.RGB32I;
+			case [RGBA, Int32]:
 				GL2.RGBA32I;
-			case UInt32:
+			case [R, UInt32]:
+				GL2.R32UI;
+			case [RGB, UInt32]:
+				GL2.RGB32UI;
+			case [RGBA, UInt32]:
 				GL2.RGBA32UI;
-			case Float16:
+			case [R, Float16]:
+				GL2.R16F;
+			case [RGB, Float16]:
+				GL2.RGB16F;
+			case [RGBA, Float16]:
 				GL2.RGBA16F;
-			case Float32:
+			case [R, Float32]:
+				GL2.R32F;
+			case [RGB, Float32]:
+				GL2.RGB32F;
+			case [RGBA, Float32]:
 				GL2.RGBA32F;
 		}
 	}
 
 	function formatWrap():Int {
-		return switch type {
-			case Int32 | UInt32:
+		return switch [format, type] {
+			case [R, Int32 | UInt32]:
+				GL2.RED_INTEGER;
+			case [RGB, Int32 | UInt32]:
+				GL2.RGB_INTEGER;
+			case [RGBA, Int32 | UInt32]:
 				GL2.RGBA_INTEGER;
-			case Int8 | Float16 | Float32:
+			case [R, Int8 | Float16 | Float32]:
+				GL2.RED;
+			case [RGB, Int8 | Float16 | Float32]:
+				GL2.RGB;
+			case [RGBA, Int8 | Float16 | Float32]:
 				GL2.RGBA;
 		}
 	}
 
+	function numChannels():Int {
+		return switch format {
+			case R:
+				1;
+			case RGB:
+				3;
+			case RGBA:
+				4;
+		}
+	}
+
 	@:allow(pot.graphics.gl.Graphics)
-	function init(width:Int, height:Int, type:TextureType):Void {
+	function init(width:Int, height:Int, format:TextureFormat, type:TextureType):Void {
 		this.width = width;
 		this.height = height;
+		this.format = format;
 		this.type = type;
 
 		gl.bindTexture(GL2.TEXTURE_2D, texture);
@@ -90,9 +127,10 @@ class Texture extends GLObject {
 	}
 
 	@:allow(pot.graphics.gl.Graphics)
-	function load(source:BitmapSource, type:TextureType, flipY:Bool = true):Void {
+	function load(source:BitmapSource, format:TextureFormat, type:TextureType, flipY:Bool = true):Void {
 		this.width = source.width;
 		this.height = source.height;
+		this.format = format;
 		this.type = type;
 
 		gl.pixelStorei(GL2.UNPACK_FLIP_Y_WEBGL, cast flipY);
@@ -112,24 +150,25 @@ class Texture extends GLObject {
 		initFBO();
 	}
 
-	overload extern public inline function upload(xOffset:Int, yOffset:Int, width:Int, height:Int, pixelsRGBA:Uint8Array,
-			flipY:Bool = true):Void {
+	overload extern public inline function upload(xOffset:Int, yOffset:Int, width:Int, height:Int,
+			pixelsRGBA:Uint8Array, flipY:Bool = true):Void {
 		if (type != Int8)
 			throw "not an 8-bit integer texture";
-		if (pixelsRGBA.length != width * height * 4)
+		if (pixelsRGBA.length != width * height * numChannels())
 			throw "dimensions mismatch";
 		gl.pixelStorei(GL2.UNPACK_FLIP_Y_WEBGL, cast flipY);
 		gl.bindTexture(GL2.TEXTURE_2D, texture);
-		gl.texSubImage2D(GL2.TEXTURE_2D, 0, xOffset, yOffset, width, height, formatWrap(), GL2.UNSIGNED_BYTE, pixelsRGBA);
+		gl.texSubImage2D(GL2.TEXTURE_2D, 0, xOffset, yOffset, width, height, formatWrap(), GL2.UNSIGNED_BYTE,
+			pixelsRGBA);
 		gl.bindTexture(GL2.TEXTURE_2D, null);
 		gl.pixelStorei(GL2.UNPACK_FLIP_Y_WEBGL, cast true);
 	}
 
-	overload extern public inline function upload(xOffset:Int, yOffset:Int, width:Int, height:Int, pixelsRGBA:Int32Array,
-			flipY:Bool = true):Void {
+	overload extern public inline function upload(xOffset:Int, yOffset:Int, width:Int, height:Int,
+			pixelsRGBA:Int32Array, flipY:Bool = true):Void {
 		if (type != Int32)
 			throw "not a 32-bit integer texture";
-		if (pixelsRGBA.length != width * height * 4)
+		if (pixelsRGBA.length != width * height * numChannels())
 			throw "dimensions mismatch";
 		gl.pixelStorei(GL2.UNPACK_FLIP_Y_WEBGL, cast flipY);
 		gl.bindTexture(GL2.TEXTURE_2D, texture);
@@ -138,24 +177,25 @@ class Texture extends GLObject {
 		gl.pixelStorei(GL2.UNPACK_FLIP_Y_WEBGL, cast true);
 	}
 
-	overload extern public inline function upload(xOffset:Int, yOffset:Int, width:Int, height:Int, pixelsRGBA:Uint32Array,
-			flipY:Bool = true):Void {
+	overload extern public inline function upload(xOffset:Int, yOffset:Int, width:Int, height:Int,
+			pixelsRGBA:Uint32Array, flipY:Bool = true):Void {
 		if (type != UInt32)
 			throw "not an unsigned 32-bit integer texture";
-		if (pixelsRGBA.length != width * height * 4)
+		if (pixelsRGBA.length != width * height * numChannels())
 			throw "dimensions mismatch";
 		gl.pixelStorei(GL2.UNPACK_FLIP_Y_WEBGL, cast flipY);
 		gl.bindTexture(GL2.TEXTURE_2D, texture);
-		gl.texSubImage2D(GL2.TEXTURE_2D, 0, xOffset, yOffset, width, height, formatWrap(), GL2.UNSIGNED_INT, pixelsRGBA);
+		gl.texSubImage2D(GL2.TEXTURE_2D, 0, xOffset, yOffset, width, height, formatWrap(), GL2.UNSIGNED_INT,
+			pixelsRGBA);
 		gl.bindTexture(GL2.TEXTURE_2D, null);
 		gl.pixelStorei(GL2.UNPACK_FLIP_Y_WEBGL, cast true);
 	}
 
-	overload extern public inline function upload(xOffset:Int, yOffset:Int, width:Int, height:Int, pixelsRGBA:Float32Array,
-			flipY:Bool = true):Void {
+	overload extern public inline function upload(xOffset:Int, yOffset:Int, width:Int, height:Int,
+			pixelsRGBA:Float32Array, flipY:Bool = true):Void {
 		if (type != Float32)
 			throw "not a 32-bit floating point texture";
-		if (pixelsRGBA.length != width * height * 4)
+		if (pixelsRGBA.length != width * height * numChannels())
 			throw "dimensions mismatch";
 		gl.pixelStorei(GL2.UNPACK_FLIP_Y_WEBGL, cast flipY);
 		gl.bindTexture(GL2.TEXTURE_2D, texture);
@@ -164,40 +204,44 @@ class Texture extends GLObject {
 		gl.pixelStorei(GL2.UNPACK_FLIP_Y_WEBGL, cast true);
 	}
 
-	overload extern public inline function download(xOffset:Int, yOffset:Int, width:Int, height:Int, pixelsRGBA:Uint8Array):Void {
+	overload extern public inline function download(xOffset:Int, yOffset:Int, width:Int, height:Int,
+			pixelsRGBA:Uint8Array):Void {
 		if (type != Int8)
 			throw "not an 8-bit integer texture";
-		if (pixelsRGBA.length != width * height * 4)
+		if (pixelsRGBA.length != width * height * numChannels())
 			throw "dimensions mismatch";
 		gl.bindFramebuffer(GL2.FRAMEBUFFER, frameBuffer.getRawFrameBuffer());
 		gl.readPixels(xOffset, yOffset, width, height, formatWrap(), GL2.UNSIGNED_BYTE, pixelsRGBA);
 		gl.bindFramebuffer(GL2.FRAMEBUFFER, null);
 	}
 
-	overload extern public inline function download(xOffset:Int, yOffset:Int, width:Int, height:Int, pixelsRGBA:Int32Array):Void {
+	overload extern public inline function download(xOffset:Int, yOffset:Int, width:Int, height:Int,
+			pixelsRGBA:Int32Array):Void {
 		if (type != Int32)
 			throw "not a 32-bit integer texture";
-		if (pixelsRGBA.length != width * height * 4)
+		if (pixelsRGBA.length != width * height * numChannels())
 			throw "dimensions mismatch";
 		gl.bindFramebuffer(GL2.FRAMEBUFFER, frameBuffer.getRawFrameBuffer());
 		gl.readPixels(xOffset, yOffset, width, height, formatWrap(), GL2.INT, pixelsRGBA);
 		gl.bindFramebuffer(GL2.FRAMEBUFFER, null);
 	}
 
-	overload extern public inline function download(xOffset:Int, yOffset:Int, width:Int, height:Int, pixelsRGBA:Uint32Array):Void {
+	overload extern public inline function download(xOffset:Int, yOffset:Int, width:Int, height:Int,
+			pixelsRGBA:Uint32Array):Void {
 		if (type != UInt32)
 			throw "not an unsigned 32-bit integer texture";
-		if (pixelsRGBA.length != width * height * 4)
+		if (pixelsRGBA.length != width * height * numChannels())
 			throw "dimensions mismatch";
 		gl.bindFramebuffer(GL2.FRAMEBUFFER, frameBuffer.getRawFrameBuffer());
 		gl.readPixels(xOffset, yOffset, width, height, formatWrap(), GL2.UNSIGNED_INT, pixelsRGBA);
 		gl.bindFramebuffer(GL2.FRAMEBUFFER, null);
 	}
 
-	overload extern public inline function download(xOffset:Int, yOffset:Int, width:Int, height:Int, pixelsRGBA:Float32Array):Void {
+	overload extern public inline function download(xOffset:Int, yOffset:Int, width:Int, height:Int,
+			pixelsRGBA:Float32Array):Void {
 		if (type != Float32)
 			throw "not a 32-bit floating point texture";
-		if (pixelsRGBA.length != width * height * 4)
+		if (pixelsRGBA.length != width * height * numChannels())
 			throw "dimensions mismatch";
 		gl.bindFramebuffer(GL2.FRAMEBUFFER, frameBuffer.getRawFrameBuffer());
 		gl.readPixels(xOffset, yOffset, width, height, formatWrap(), GL2.FLOAT, pixelsRGBA);
@@ -206,17 +250,18 @@ class Texture extends GLObject {
 
 	public function sync():Void {
 		gl.bindFramebuffer(GL2.FRAMEBUFFER, frameBuffer.getRawFrameBuffer());
+		final nc = numChannels();
 		gl.readPixels(0, 0, 1, 1, formatWrap(), type, switch type {
 			case Int8:
-				new Uint8Array(4);
+				new Uint8Array(nc);
 			case Int32:
-				new Int32Array(4);
+				new Int32Array(nc);
 			case UInt32:
-				new Uint32Array(4);
+				new Uint32Array(nc);
 			case Float16:
-				new Uint16Array(4);
+				new Uint16Array(nc);
 			case Float32:
-				new Float32Array(4);
+				new Float32Array(nc);
 		});
 		gl.bindFramebuffer(GL2.FRAMEBUFFER, null);
 	}

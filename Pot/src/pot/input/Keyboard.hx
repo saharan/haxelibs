@@ -16,6 +16,10 @@ abstract Keyboard(KeyboardData) {
 		this = new KeyboardData();
 	}
 
+	extern public inline function key(code:CodeValue):Key {
+		return safeGet(code);
+	}
+
 	@:arrayAccess
 	public inline function get(code:CodeValue):Key {
 		return safeGet(code);
@@ -96,19 +100,19 @@ abstract Keyboard(KeyboardData) {
 		return this.ups.has(key);
 	}
 
-	public function forEachDownKey(f:String->Void):Void {
+	public function forEachDownKey(f:String -> Void):Void {
 		for (key in this.downs) {
 			f(key);
 		}
 	}
 
-	public function forEachUpKey(f:String->Void):Void {
+	public function forEachUpKey(f:String -> Void):Void {
 		for (key in this.ups) {
 			f(key);
 		}
 	}
 
-	public function forEachCode(f:CodeValue->Key->Void):Void {
+	public function forEachCode(f:CodeValue -> Key -> Void):Void {
 		for (code => key in this.keys) {
 			f(code, key);
 		}

@@ -1,5 +1,7 @@
 package pot.input;
 
+import js.html.FocusEvent;
+import muun.la.Vec2;
 import js.Browser;
 import js.html.CanvasElement;
 import js.html.Element;
@@ -16,6 +18,10 @@ using pot.input.InputTools;
  */
 @:allow(pot.input.Input)
 class Mouse {
+	public final ppos:Vec2 = Vec2.zero;
+	public final pos:Vec2 = Vec2.zero;
+	public final delta:Vec2 = Vec2.zero;
+
 	public var px(default, null):Float;
 	public var py(default, null):Float;
 	public var x(default, null):Float;
@@ -170,6 +176,11 @@ class Mouse {
 		target.addEventListener("pointerup", (e:PointerEvent) -> {
 			target.releasePointerCapture(e.pointerId);
 		});
+		Browser.window.addEventListener("blur", (e:FocusEvent) -> {
+			nleft = false;
+			nmiddle = false;
+			nright = false;
+		});
 	}
 
 	function update(substepRatio:Float):Void {
@@ -179,6 +190,9 @@ class Mouse {
 		y = py2 + substepRatio * (ny - py2);
 		dx = x - px;
 		dy = y - py;
+		ppos.set(px, py);
+		pos.set(x, y);
+		delta.set(dx, dy);
 		pleft = left;
 		pmiddle = middle;
 		pright = right;

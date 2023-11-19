@@ -57,7 +57,7 @@ abstract Touches(TouchesData) {
 				}
 			}
 		}, {passive: false});
-		var end:TouchEvent->Void = (e:TouchEvent) -> {
+		var end:TouchEvent -> Void = (e:TouchEvent) -> {
 			if (e.cancelable)
 				e.preventDefault();
 			var touches = e.changedTouches;

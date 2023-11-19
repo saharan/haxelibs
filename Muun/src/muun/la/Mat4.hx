@@ -40,7 +40,7 @@ abstract Mat4(Mat4Data) from Mat4Data {
 		return of(h / aspect, 0, 0, 0, 0, h, 0, 0, 0, 0, -(far + near) / (far - near), -2 * near * far / (far - near), 0, 0, -1, 0);
 	}
 
-	extern public static inline function ortho(width:Float, height:Float, near:Float, far:Float):Mat4 {
+	extern public static inline function orthographic(width:Float, height:Float, near:Float, far:Float):Mat4 {
 		final nf = 1 / (near - far);
 		return of(2 / width, 0, 0, 0, 0, 2 / height, 0, 0, 0, 0, nf, near * nf, 0, 0, 0, 1);
 	}

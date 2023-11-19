@@ -1,11 +1,17 @@
 package pot.input;
 
+import muun.la.Vec2;
+
 /**
  * ...
  */
 @:allow(pot.input.Input)
 @:allow(pot.input.Touches)
 class Touch {
+	public final ppos:Vec2 = Vec2.zero;
+	public final pos:Vec2 = Vec2.zero;
+	public final delta:Vec2 = Vec2.zero;
+
 	public var px(default, null):Float = 0;
 	public var py(default, null):Float = 0;
 	public var x(default, null):Float = 0;
@@ -64,6 +70,9 @@ class Touch {
 		y = py2 + substepRatio * (ny - py2);
 		dx = x - px;
 		dy = y - py;
+		ppos.set(px, py);
+		pos.set(x, y);
+		delta.set(dx, dy);
 		ptouching = touching;
 		touching = ntouching || ntouching2;
 		ntouching2 = false;

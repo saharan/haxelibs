@@ -31,7 +31,8 @@ class App {
 	var frameCount:Int;
 
 	@:access(pot.core.Pot.beginObservation)
-	public function new(canvas:CanvasElement, inputTarget:InputTarget = Canvas, captureKey:Bool = false, captureWheel:Bool = true) {
+	public function new(canvas:CanvasElement, inputTarget:InputTarget = Canvas, captureKey:Bool = false,
+			captureWheel:Bool = true) {
 		this.canvas = canvas;
 		pot = new Pot(this, canvas);
 		switch inputTarget {
@@ -69,5 +70,12 @@ class App {
 	 * Called on every rendering
 	 */
 	function draw():Void {
+	}
+
+	/**
+	 * Returns `true` if this app is running in a worker context
+	 */
+	public static function isWorker():Bool {
+		return try Browser.document == null catch (e) true;
 	}
 }
