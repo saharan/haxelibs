@@ -13,12 +13,13 @@ class RenderTexture {
 		return textures[srcIndex];
 	}
 
-	public function new(g:Graphics, width:Int, height:Int, type:TextureType, numTextures:Int = 1, filter:TextureFilter = Nearest) {
+	public function new(g:Graphics, width:Int, height:Int, format:TextureFormat = RGBA, type:TextureType,
+			numTextures:Int = 1, filter:TextureFilter = Nearest) {
 		this.g = g;
 		this.numTextures = numTextures;
 		for (i in 0...numTextures) {
-			final t0 = g.createTexture(width, height, type);
-			final t1 = g.createTexture(width, height, type);
+			final t0 = g.createTexture(width, height, format, type);
+			final t1 = g.createTexture(width, height, format, type);
 			t0.filter(filter);
 			t1.filter(filter);
 			textures[0].push(t0);

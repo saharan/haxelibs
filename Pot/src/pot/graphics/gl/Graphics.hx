@@ -92,7 +92,7 @@ class Graphics {
 
 	var floatBlendEnabled:Bool = false;
 
-	public function new(canvas:CanvasElement) {
+	public function new(canvas:CanvasElement, antialias:Bool = true) {
 		this.canvas = canvas;
 		// gl = untyped WebGLDebugUtils.makeDebugContext(canvas.getContextWebGL2({
 		// 	premultipliedAlpha: false,
@@ -101,6 +101,7 @@ class Graphics {
 		gl = canvas.getContextWebGL2({
 			premultipliedAlpha: false,
 			preserveDrawingBuffer: true,
+			antialias: antialias,
 			stencil: true
 		});
 
@@ -438,13 +439,13 @@ class Graphics {
 	}
 
 	public function createTexture(width:Int, height:Int, format:TextureFormat = RGBA,
-			?type:TextureType = Int8):Texture {
+			?type:TextureType = UInt8):Texture {
 		final tex = new Texture(gl);
 		tex.init(width, height, format, type);
 		return tex;
 	}
 
-	public function loadBitmap(source:BitmapSource, format:TextureFormat = RGBA, type:TextureType = Int8,
+	public function loadBitmap(source:BitmapSource, format:TextureFormat = RGBA, type:TextureType = UInt8,
 			?flipY:Bool = true):Texture {
 		final tex = new Texture(gl);
 		tex.load(source, format, type, flipY);
@@ -452,7 +453,7 @@ class Graphics {
 	}
 
 	public function loadBitmapTo(dst:Texture, source:BitmapSource, format:TextureFormat = RGBA,
-			?type:TextureType = Int8, flipY:Bool = true):Void {
+			?type:TextureType = UInt8, flipY:Bool = true):Void {
 		dst.load(source, format, type, flipY);
 	}
 
@@ -574,6 +575,7 @@ class Graphics {
 	}
 
 	public function pushMatrix():Void {
+		sceneCheck(true, "begin scene before push/pop matrices");
 		if (matStackCount > MAT_STACK_SIZE - 16) {
 			throw new Error("matrix stack overflowed");
 		}
@@ -596,6 +598,7 @@ class Graphics {
 	}
 
 	public function popMatrix():Void {
+		sceneCheck(true, "begin scene before push/pop matrices");
 		if (matStackCount < 16) {
 			throw new Error("cannot pop matrix");
 		}

@@ -1,5 +1,6 @@
 package pot.graphics.gl;
 
+import js.html.webgl.Framebuffer;
 import js.html.webgl.GL2;
 import js.lib.Float32Array;
 import js.lib.Int32Array;
@@ -43,11 +44,11 @@ class Texture extends GLObject {
 
 	function internalFormatWrap():Int {
 		return switch [format, type] {
-			case [R, Int8]:
+			case [R, UInt8]:
 				GL2.R8;
-			case [RGB, Int8]:
+			case [RGB, UInt8]:
 				GL2.RGB8;
-			case [RGBA, Int8]:
+			case [RGBA, UInt8]:
 				GL2.RGBA8;
 			case [R, Int32]:
 				GL2.R32I;
@@ -84,11 +85,11 @@ class Texture extends GLObject {
 				GL2.RGB_INTEGER;
 			case [RGBA, Int32 | UInt32]:
 				GL2.RGBA_INTEGER;
-			case [R, Int8 | Float16 | Float32]:
+			case [R, UInt8 | Float16 | Float32]:
 				GL2.RED;
-			case [RGB, Int8 | Float16 | Float32]:
+			case [RGB, UInt8 | Float16 | Float32]:
 				GL2.RGB;
-			case [RGBA, Int8 | Float16 | Float32]:
+			case [RGBA, UInt8 | Float16 | Float32]:
 				GL2.RGBA;
 		}
 	}
@@ -152,7 +153,7 @@ class Texture extends GLObject {
 
 	overload extern public inline function upload(xOffset:Int, yOffset:Int, width:Int, height:Int,
 			pixelsRGBA:Uint8Array, flipY:Bool = true):Void {
-		if (type != Int8)
+		if (type != UInt8)
 			throw "not an 8-bit integer texture";
 		if (pixelsRGBA.length != width * height * numChannels())
 			throw "dimensions mismatch";
@@ -206,13 +207,14 @@ class Texture extends GLObject {
 
 	overload extern public inline function download(xOffset:Int, yOffset:Int, width:Int, height:Int,
 			pixelsRGBA:Uint8Array):Void {
-		if (type != Int8)
+		if (type != UInt8)
 			throw "not an 8-bit integer texture";
 		if (pixelsRGBA.length != width * height * numChannels())
 			throw "dimensions mismatch";
+		final tmp:Framebuffer = cast gl.getParameter(GL2.FRAMEBUFFER_BINDING);
 		gl.bindFramebuffer(GL2.FRAMEBUFFER, frameBuffer.getRawFrameBuffer());
 		gl.readPixels(xOffset, yOffset, width, height, formatWrap(), GL2.UNSIGNED_BYTE, pixelsRGBA);
-		gl.bindFramebuffer(GL2.FRAMEBUFFER, null);
+		gl.bindFramebuffer(GL2.FRAMEBUFFER, tmp);
 	}
 
 	overload extern public inline function download(xOffset:Int, yOffset:Int, width:Int, height:Int,
@@ -221,9 +223,10 @@ class Texture extends GLObject {
 			throw "not a 32-bit integer texture";
 		if (pixelsRGBA.length != width * height * numChannels())
 			throw "dimensions mismatch";
+		final tmp:Framebuffer = cast gl.getParameter(GL2.FRAMEBUFFER_BINDING);
 		gl.bindFramebuffer(GL2.FRAMEBUFFER, frameBuffer.getRawFrameBuffer());
 		gl.readPixels(xOffset, yOffset, width, height, formatWrap(), GL2.INT, pixelsRGBA);
-		gl.bindFramebuffer(GL2.FRAMEBUFFER, null);
+		gl.bindFramebuffer(GL2.FRAMEBUFFER, tmp);
 	}
 
 	overload extern public inline function download(xOffset:Int, yOffset:Int, width:Int, height:Int,
@@ -232,9 +235,10 @@ class Texture extends GLObject {
 			throw "not an unsigned 32-bit integer texture";
 		if (pixelsRGBA.length != width * height * numChannels())
 			throw "dimensions mismatch";
+		final tmp:Framebuffer = cast gl.getParameter(GL2.FRAMEBUFFER_BINDING);
 		gl.bindFramebuffer(GL2.FRAMEBUFFER, frameBuffer.getRawFrameBuffer());
 		gl.readPixels(xOffset, yOffset, width, height, formatWrap(), GL2.UNSIGNED_INT, pixelsRGBA);
-		gl.bindFramebuffer(GL2.FRAMEBUFFER, null);
+		gl.bindFramebuffer(GL2.FRAMEBUFFER, tmp);
 	}
 
 	overload extern public inline function download(xOffset:Int, yOffset:Int, width:Int, height:Int,
@@ -243,16 +247,17 @@ class Texture extends GLObject {
 			throw "not a 32-bit floating point texture";
 		if (pixelsRGBA.length != width * height * numChannels())
 			throw "dimensions mismatch";
+		final tmp:Framebuffer = cast gl.getParameter(GL2.FRAMEBUFFER_BINDING);
 		gl.bindFramebuffer(GL2.FRAMEBUFFER, frameBuffer.getRawFrameBuffer());
 		gl.readPixels(xOffset, yOffset, width, height, formatWrap(), GL2.FLOAT, pixelsRGBA);
-		gl.bindFramebuffer(GL2.FRAMEBUFFER, null);
+		gl.bindFramebuffer(GL2.FRAMEBUFFER, tmp);
 	}
 
 	public function sync():Void {
 		gl.bindFramebuffer(GL2.FRAMEBUFFER, frameBuffer.getRawFrameBuffer());
 		final nc = numChannels();
 		gl.readPixels(0, 0, 1, 1, formatWrap(), type, switch type {
-			case Int8:
+			case UInt8:
 				new Uint8Array(nc);
 			case Int32:
 				new Int32Array(nc);

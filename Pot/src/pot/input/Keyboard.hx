@@ -41,9 +41,9 @@ abstract Keyboard(KeyboardData) {
 			var code = CodeValue.fromString(e.code);
 			if (code == null)
 				return;
-			if (!CodeValue.FUNCTIONS.contains(code) && e.cancelable) {
-				e.preventDefault();
-			}
+			// if (!CodeValue.FUNCTIONS.contains(code) && e.cancelable) {
+			// 	e.preventDefault();
+			// }
 			safeGet(code).press();
 			this.ndowns.add(e.key);
 		});
@@ -51,9 +51,9 @@ abstract Keyboard(KeyboardData) {
 			var code = CodeValue.fromString(e.code);
 			if (code == null)
 				return;
-			if (!CodeValue.FUNCTIONS.contains(code) && e.cancelable) {
-				e.preventDefault();
-			}
+			// if (!CodeValue.FUNCTIONS.contains(code) && e.cancelable) {
+			// 	e.preventDefault();
+			// }
 			safeGet(code).release();
 			this.nups.add(e.key);
 		});

@@ -1,5 +1,6 @@
 package pot.graphics.bitmap;
 
+import haxe.io.Int32Array;
 import js.html.ImageData;
 import js.html.CanvasRenderingContext2D;
 import haxe.ds.Vector;
@@ -14,13 +15,15 @@ class Bitmap {
 	public var width(default, null):Int = -1;
 	public var height(default, null):Int = -1;
 	public var numPixels(default, null):Int = -1;
-	public var pixels(default, null):Vector<Int> = null;
+	public var pixels(default, null):Int32Array = null;
 
 	var imageData:ImageData = null;
 
 	public function new(width:Int, height:Int) {
 		canvas = Browser.document.createCanvasElement();
-		c2d = canvas.getContext2d();
+		c2d = canvas.getContext2d({
+			willReadFrequently: true
+		});
 		g = new BitmapGraphics(c2d);
 		setSize(width, height);
 	}
@@ -44,7 +47,7 @@ class Bitmap {
 
 	public function loadPixels():Void {
 		if (pixels == null || pixels.length != numPixels) {
-			pixels = new Vector<Int>(numPixels);
+			pixels = new Int32Array(numPixels);
 		}
 		imageData = c2d.getImageData(0, 0, width, height);
 		final data = imageData.data;

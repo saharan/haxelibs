@@ -68,7 +68,7 @@ class FrameRateManager {
 			final maxDrawBegin = max(lastDrawBegin + targetInterval * MAX_FRAMERATE_RATIO, currentTime +
 				MIN_UPDATE_TIME);
 			final maxUpdateCount = !frameSkipEnabled || count < 10 ? 1 : max(1,
-				Math.round((maxDrawBegin - currentTime) / estimatedUpdateTime));
+				Math.floor(targetInterval / estimatedUpdateTime));
 			final idealUpdateCountFloat = (currentTime - prevTime) / max(targetInterval * 0.01,
 				targetInterval - estimatedUpdateTime);
 			final idealUpdateCount = idealUpdateCountFloat > 0.2 && idealUpdateCountFloat < 1.8 ? 1 : Math.round(idealUpdateCountFloat);

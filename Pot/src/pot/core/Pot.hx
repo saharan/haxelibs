@@ -103,7 +103,7 @@ class Pot {
 	}
 
 	public function endUpdate():Void {
-		assert(asyncUpdate, "enable async update is disabled");
+		assert(asyncUpdate, "async update is disabled");
 		assert(onEndUpdate != null, "callback function not set");
 		onEndUpdate();
 		onEndUpdate = null;

@@ -9,7 +9,7 @@ enum abstract TextureType(Int) to Int {
 	/**
 	 * Represents 8-bit integer type.
 	 */
-	var Int8 = GL2.UNSIGNED_BYTE;
+	var UInt8 = GL2.UNSIGNED_BYTE;
 
 	/**
 	 * Represents 32-bit signed integer type.

@@ -1,5 +1,7 @@
 package pot.graphics.bitmap;
 
+import muun.la.Vec4;
+import muun.la.Vec3;
 import js.html.CanvasElement;
 import js.html.CanvasRenderingContext2D;
 
@@ -19,7 +21,23 @@ class BitmapGraphics {
 		return c2d;
 	}
 
-	public function clear(r:Float = 0, g:Float = 0, b:Float = 0, a:Float = 1):Void {
+	overload extern public inline function clear(rgb:Vec3, a:Float = 1):Void {
+		clearImpl(rgb.x, rgb.y, rgb.z, a);
+	}
+
+	overload extern public inline function clear(rgba:Vec4):Void {
+		clearImpl(rgba.x, rgba.y, rgba.z, rgba.w);
+	}
+
+	overload extern public inline function clear(r:Float, g:Float, b:Float, a:Float = 1):Void {
+		clearImpl(r, g, b, a);
+	}
+
+	overload extern public inline function clear(rgb:Float, a:Float = 1):Void {
+		clearImpl(rgb, rgb, rgb, a);
+	}
+
+	function clearImpl(r:Float, g:Float, b:Float, a:Float):Void {
 		save();
 		c2d.clearRect(0, 0, canvas.width, canvas.height);
 		alpha();
@@ -37,15 +55,48 @@ class BitmapGraphics {
 		c2d.globalCompositeOperation = mode;
 	}
 
-	extern public inline function fillColor(r:Float, g:Float, b:Float, a:Float = 1.0):Void {
+	overload extern public inline function fillColor(rgb:Vec3, a:Float = 1):Void {
+		fillColorImpl(rgb.x, rgb.y, rgb.z, a);
+	}
+
+	overload extern public inline function fillColor(rgba:Vec4):Void {
+		fillColorImpl(rgba.x, rgba.y, rgba.z, rgba.w);
+	}
+
+	overload extern public inline function fillColor(r:Float, g:Float, b:Float, a:Float = 1):Void {
+		fillColorImpl(r, g, b, a);
+	}
+
+	overload extern public inline function fillColor(rgb:Float, a:Float = 1):Void {
+		fillColorImpl(rgb, rgb, rgb, a);
+	}
+
+	function fillColorImpl(r:Float, g:Float, b:Float, a:Float):Void {
 		c2d.fillStyle = 'rgba(${Std.int(r * 255 + 0.5)}, ${Std.int(g * 255 + 0.5)}, ${Std.int(b * 255 + 0.5)}, $a)';
 	}
 
-	extern public inline function strokeColor(r:Float, g:Float, b:Float, a:Float = 1.0):Void {
+	overload extern public inline function strokeColor(rgb:Vec3, a:Float = 1):Void {
+		strokeColorImpl(rgb.x, rgb.y, rgb.z, a);
+	}
+
+	overload extern public inline function strokeColor(rgba:Vec4):Void {
+		strokeColorImpl(rgba.x, rgba.y, rgba.z, rgba.w);
+	}
+
+	overload extern public inline function strokeColor(r:Float, g:Float, b:Float, a:Float = 1):Void {
+		strokeColorImpl(r, g, b, a);
+	}
+
+	overload extern public inline function strokeColor(rgb:Float, a:Float = 1):Void {
+		strokeColorImpl(rgb, rgb, rgb, a);
+	}
+
+	function strokeColorImpl(r:Float, g:Float, b:Float, a:Float):Void {
 		c2d.strokeStyle = 'rgba(${Std.int(r * 255 + 0.5)}, ${Std.int(g * 255 + 0.5)}, ${Std.int(b * 255 + 0.5)}, $a)';
 	}
 
-	extern public inline function font(name:String, size:Float, weight:FontWeight = Normal, fallback:FontFallback = SansSerif):Void {
+	extern public inline function font(name:String, size:Float, weight:FontWeight = Normal,
+			fallback:FontFallback = SansSerif):Void {
 		c2d.font = '$weight ${size}px "$name", $fallback';
 	}
 
@@ -156,12 +207,13 @@ class BitmapGraphics {
 		c2d.arcTo(c1x, c1y, c2x, c2y, r);
 	}
 
-	extern public inline function arc(x:Float, y:Float, r:Float, start:Float, end:Float, anticlockwise:Bool = false):Void {
+	extern public inline function arc(x:Float, y:Float, r:Float, start:Float, end:Float,
+			anticlockwise:Bool = false):Void {
 		c2d.arc(x, y, r, start, end, anticlockwise);
 	}
 
-	extern public inline function ellipse(x:Float, y:Float, rx:Float, ry:Float, rotation:Float, start:Float, end:Float,
-			anticlockwise:Bool = false):Void {
+	extern public inline function ellipse(x:Float, y:Float, rx:Float, ry:Float, rotation:Float, start:Float,
+			end:Float, anticlockwise:Bool = false):Void {
 		c2d.ellipse(x, y, rx, ry, rotation, start, end, anticlockwise);
 	}
 
@@ -219,8 +271,8 @@ class BitmapGraphics {
 		c2d.drawImage(src.source, dx, dy, dw, dh);
 	}
 
-	extern overload public inline function drawImage(src:BitmapSource, sx:Float, sy:Float, sw:Float, sh:Float, dx:Float, dy:Float,
-			dw:Float, dh:Float):Void {
+	extern overload public inline function drawImage(src:BitmapSource, sx:Float, sy:Float, sw:Float, sh:Float,
+			dx:Float, dy:Float, dw:Float, dh:Float):Void {
 		c2d.drawImage(src.source, sx, sy, sw, sh, dx, dy, dw, dh);
 	}
 }

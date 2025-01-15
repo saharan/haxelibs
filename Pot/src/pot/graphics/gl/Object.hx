@@ -20,7 +20,7 @@ class Object extends GLObject {
 
 	public var mode:ShapeMode = Triangles;
 
-	public final material:Material = new Material();
+	public var material:Material = new Material();
 
 	@:allow(pot.graphics.gl.Graphics)
 	function new(gl:GL2, attributes:Array<Attribute>) {
