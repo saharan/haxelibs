@@ -10,6 +10,11 @@ abstract Quat(QuatData) from QuatData {
 		return new Quat(x, y, z, w);
 	}
 
+	var a(get, never):Quat;
+
+	extern inline function get_a()
+		return this;
+
 	public static var zero(get, never):Quat;
 	public static var one(get, never):Quat;
 	public static var id(get, never):Quat;
@@ -18,31 +23,31 @@ abstract Quat(QuatData) from QuatData {
 	public static var ez(get, never):Quat;
 	public static var ew(get, never):Quat;
 
-	extern static inline function get_zero():Quat {
+	extern static inline function get_zero() {
 		return of(0, 0, 0, 0);
 	}
 
-	extern static inline function get_one():Quat {
+	extern static inline function get_one() {
 		return of(1, 1, 1, 1);
 	}
 
-	extern static inline function get_id():Quat {
+	extern static inline function get_id() {
 		return of(0, 0, 0, 1);
 	}
 
-	extern static inline function get_ex():Quat {
+	extern static inline function get_ex() {
 		return of(1, 0, 0, 0);
 	}
 
-	extern static inline function get_ey():Quat {
+	extern static inline function get_ey() {
 		return of(0, 1, 0, 0);
 	}
 
-	extern static inline function get_ez():Quat {
+	extern static inline function get_ez() {
 		return of(0, 0, 1, 0);
 	}
 
-	extern static inline function get_ew():Quat {
+	extern static inline function get_ew() {
 		return of(0, 0, 0, 1);
 	}
 
@@ -86,56 +91,43 @@ abstract Quat(QuatData) from QuatData {
 	public var conj(get, never):Quat;
 	public var inv(get, never):Quat;
 	public var normalized(get, never):Quat;
-	public var vec(get, set):Vec3;
+	public var vec(get, set):ImVec3;
 
-	extern inline function get_length():Float {
+	extern inline function get_length() {
 		return Math.sqrt(lengthSq);
 	}
 
-	extern inline function get_lengthSq():Float {
-		return dot(this);
+	extern inline function get_lengthSq() {
+		return dot(a);
 	}
 
-	extern inline function get_conj():Quat {
-		final a = this;
+	extern inline function get_conj() {
 		return of(-a.x, -a.y, -a.z, a.w);
 	}
 
-	extern inline function get_inv():Quat {
-		final a = this;
+	extern inline function get_inv() {
 		var invLen2 = dot(a);
 		if (invLen2 > 0)
 			invLen2 = 1 / invLen2;
 		return of(-a.x, -a.y, -a.z, a.w) * invLen2;
 	}
 
-	extern inline function get_normalized():Quat {
+	extern inline function get_normalized() {
 		var l = length;
 		if (l > 0)
 			l = 1 / l;
-		return mulf(this, l);
+		return mulf(a, l);
 	}
 
-	extern inline function get_vec():Vec3 {
-		final a = this;
+	extern inline function get_vec() {
 		return Vec3.of(a.x, a.y, a.z);
 	}
 
-	extern inline function set_vec(v:Vec3):Vec3 {
-		final a = this;
-		a.x = v.x;
-		a.y = v.y;
-		a.z = v.z;
-		return vec;
-	}
-
 	extern public inline function dot(b:Quat):Float {
-		final a = this;
 		return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 	}
 
 	extern public inline function toMat3():Mat3 {
-		final a = this;
 		final x2 = a.x * 2;
 		final y2 = a.y * 2;
 		final z2 = a.z * 2;
@@ -152,7 +144,6 @@ abstract Quat(QuatData) from QuatData {
 	}
 
 	extern public inline function toVec4():Vec4 {
-		final a = this;
 		return Vec4.of(a.x, a.y, a.z, a.w);
 	}
 
@@ -164,37 +155,6 @@ abstract Quat(QuatData) from QuatData {
 		return of(f(a.x, b.x), f(a.y, b.y), f(a.z, b.z), f(a.w, b.w));
 	}
 
-	@:op(-A)
-	extern public static inline function neg(a:Quat):Quat {
-		return unary(a, a -> -a);
-	}
-
-	@:op(A + B)
-	extern public static inline function add(a:Quat, b:Quat):Quat {
-		return binary(a, b, (a, b) -> a + b);
-	}
-
-	@:op(A - B)
-	extern public static inline function sub(a:Quat, b:Quat):Quat {
-		return binary(a, b, (a, b) -> a - b);
-	}
-
-	@:op(A * B)
-	extern public static inline function mul(a:Quat, b:Quat):Quat {
-		return of(a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y, a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x, a.w * b.z +
-			a.x * b.y - a.y * b.x + a.z * b.w, a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z);
-	}
-
-	@:op(A * B)
-	extern public static inline function mulVec(a:Quat, b:Vec3):Vec3 {
-		return a.toMat3() * b;
-	}
-
-	@:op(A / B)
-	extern public static inline function div(a:Quat, b:Quat):Quat {
-		return a * b.inv;
-	}
-
 	extern public static inline function emul(a:Quat, b:Quat):Quat {
 		return binary(a, b, (a, b) -> a * b);
 	}
@@ -203,40 +163,81 @@ abstract Quat(QuatData) from QuatData {
 		return binary(a, b, (a, b) -> a / b);
 	}
 
+	@:op(-A)
+	extern static inline function neg(a:Quat):Quat {
+		return unary(a, a -> -a);
+	}
+
+	@:op(A + B)
+	extern static inline function add(a:Quat, b:Quat):Quat {
+		return binary(a, b, (a, b) -> a + b);
+	}
+
+	@:op(A - B)
+	extern static inline function sub(a:Quat, b:Quat):Quat {
+		return binary(a, b, (a, b) -> a - b);
+	}
+
+	@:op(A * B)
+	extern static inline function mul(a:Quat, b:Quat):Quat {
+		return of(a.w * b.x + a.x * b.w + a.y * b.z - a.z * b.y, a.w * b.y - a.x * b.z + a.y * b.w + a.z * b.x,
+			a.w * b.z + a.x * b.y - a.y * b.x + a.z * b.w, a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z);
+	}
+
+	@:op(A * B)
+	extern static inline function mulVec(a:Quat, b:Vec3):Vec3 {
+		return a.toMat3() * b;
+	}
+
+	@:op(A / B)
+	extern static inline function div(a:Quat, b:Quat):Quat {
+		return a * b.inv;
+	}
+
 	@:op(A + B)
 	@:commutative
-	extern public static inline function addf(a:Quat, b:Float):Quat {
+	extern static inline function addf(a:Quat, b:Float):Quat {
 		return unary(a, a -> a + b);
 	}
 
 	@:op(A - B)
-	extern public static inline function subf(a:Quat, b:Float):Quat {
+	extern static inline function subf(a:Quat, b:Float):Quat {
 		return unary(a, a -> a - b);
 	}
 
 	@:op(A - B)
-	extern public static inline function fsub(a:Float, b:Quat):Quat {
+	extern static inline function fsub(a:Float, b:Quat):Quat {
 		return unary(b, b -> a - b);
 	}
 
 	@:op(A * B)
 	@:commutative
-	extern public static inline function mulf(a:Quat, b:Float):Quat {
+	extern static inline function mulf(a:Quat, b:Float):Quat {
 		return unary(a, a -> a * b);
 	}
 
 	@:op(A / B)
-	extern public static inline function divf(a:Quat, b:Float):Quat {
+	extern static inline function divf(a:Quat, b:Float):Quat {
 		return unary(a, a -> a * b);
 	}
 
 	@:op(A / B)
-	extern public static inline function fdiv(a:Float, b:Quat):Quat {
+	extern static inline function fdiv(a:Float, b:Quat):Quat {
 		return unary(b, b -> a / b);
 	}
 
+	extern public inline function copy():Quat {
+		return of(a.x, a.y, a.z, a.w);
+	}
+
+	public function toString():String {
+		return 'Quat(${a.x}, ${a.y}, ${a.z}; ${a.w})';
+	}
+
+	// following methods mutate the state
+
 	@:op(A <<= B)
-	extern public static inline function assign(a:Quat, b:Quat):Quat {
+	extern inline function assign(b:Quat):Quat {
 		a.x = b.x;
 		a.y = b.y;
 		a.z = b.z;
@@ -245,57 +246,54 @@ abstract Quat(QuatData) from QuatData {
 	}
 
 	@:op(A += B)
-	extern public static inline function addEq(a:Quat, b:Quat):Quat {
+	extern inline function addEq(b:Quat):Quat {
 		return a <<= a + b;
 	}
 
 	@:op(A -= B)
-	extern public static inline function subEq(a:Quat, b:Quat):Quat {
+	extern inline function subEq(b:Quat):Quat {
 		return a <<= a - b;
 	}
 
 	@:op(A *= B)
-	extern public static inline function mulEq(a:Quat, b:Quat):Quat {
+	extern inline function mulEq(b:Quat):Quat {
 		return a <<= a * b;
 	}
 
 	@:op(A /= B)
-	extern public static inline function divEq(a:Quat, b:Quat):Quat {
+	extern inline function divEq(b:Quat):Quat {
 		return a <<= a / b;
 	}
 
 	@:op(A += B)
-	extern public static inline function addfEq(a:Quat, b:Float):Quat {
+	extern inline function addfEq(b:Float):Quat {
 		return a <<= a + b;
 	}
 
 	@:op(A -= B)
-	extern public static inline function subfEq(a:Quat, b:Float):Quat {
+	extern inline function subfEq(b:Float):Quat {
 		return a <<= a - b;
 	}
 
 	@:op(A *= B)
-	extern public static inline function mulfEq(a:Quat, b:Float):Quat {
+	extern inline function mulfEq(b:Float):Quat {
 		return a <<= a * b;
 	}
 
 	@:op(A /= B)
-	extern public static inline function divfEq(a:Quat, b:Float):Quat {
+	extern inline function divfEq(b:Float):Quat {
 		return a <<= a / b;
 	}
 
 	extern public inline function set(x:Float, y:Float, z:Float, w:Float):Quat {
-		return assign(this, of(x, y, z, w));
+		return assign(of(x, y, z, w));
 	}
 
-	extern public inline function copy():Quat {
-		final a = this;
-		return of(a.x, a.y, a.z, a.w);
-	}
-
-	public function toString():String {
-		final a = this;
-		return 'Quat(${a.x}, ${a.y}, ${a.z}; ${a.w})';
+	extern inline function set_vec(v) {
+		a.x = v.x;
+		a.y = v.y;
+		a.z = v.z;
+		return vec;
 	}
 }
 

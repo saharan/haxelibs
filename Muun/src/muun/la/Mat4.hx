@@ -2,29 +2,35 @@ package muun.la;
 
 @:forward(e00, e01, e02, e03, e10, e11, e12, e13, e20, e21, e22, e23, e30, e31, e32, e33)
 abstract Mat4(Mat4Data) from Mat4Data {
-	inline function new(e00:Float, e01:Float, e02:Float, e03:Float, e10:Float, e11:Float, e12:Float, e13:Float, e20:Float, e21:Float,
-			e22:Float, e23:Float, e30:Float, e31:Float, e32:Float, e33:Float) {
+	inline function new(e00:Float, e01:Float, e02:Float, e03:Float, e10:Float, e11:Float, e12:Float, e13:Float,
+			e20:Float, e21:Float, e22:Float, e23:Float, e30:Float, e31:Float, e32:Float, e33:Float) {
 		this = new Mat4Data(e00, e01, e02, e03, e10, e11, e12, e13, e20, e21, e22, e23, e30, e31, e32, e33);
 	}
 
-	extern public static inline function of(e00:Float, e01:Float, e02:Float, e03:Float, e10:Float, e11:Float, e12:Float, e13:Float,
-			e20:Float, e21:Float, e22:Float, e23:Float, e30:Float, e31:Float, e32:Float, e33:Float):Mat4 {
+	extern public static inline function of(e00:Float, e01:Float, e02:Float, e03:Float, e10:Float, e11:Float,
+			e12:Float, e13:Float, e20:Float, e21:Float, e22:Float, e23:Float, e30:Float, e31:Float, e32:Float,
+			e33:Float):Mat4 {
 		return new Mat4(e00, e01, e02, e03, e10, e11, e12, e13, e20, e21, e22, e23, e30, e31, e32, e33);
 	}
+
+	var a(get, never):Mat4;
+
+	extern inline function get_a()
+		return this;
 
 	public static var zero(get, never):Mat4;
 	public static var one(get, never):Mat4;
 	public static var id(get, never):Mat4;
 
-	extern static inline function get_zero():Mat4 {
+	extern static inline function get_zero() {
 		return of(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 	}
 
-	extern static inline function get_one():Mat4 {
+	extern static inline function get_one() {
 		return of(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
 	}
 
-	extern static inline function get_id():Mat4 {
+	extern static inline function get_id() {
 		return of(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
 	}
 
@@ -37,7 +43,8 @@ abstract Mat4(Mat4Data) from Mat4Data {
 
 	extern public static inline function perspective(fovY:Float, aspect:Float, near:Float, far:Float):Mat4 {
 		final h = 1 / Math.tan(fovY * 0.5);
-		return of(h / aspect, 0, 0, 0, 0, h, 0, 0, 0, 0, -(far + near) / (far - near), -2 * near * far / (far - near), 0, 0, -1, 0);
+		return of(h / aspect, 0, 0, 0, 0, h, 0, 0, 0, 0, -(far + near) / (far - near), -2 * near * far / (far - near),
+			0, 0, -1, 0);
 	}
 
 	extern public static inline function orthographic(width:Float, height:Float, near:Float, far:Float):Mat4 {
@@ -49,125 +56,45 @@ abstract Mat4(Mat4Data) from Mat4Data {
 		return of(1, 0, 0, v.x, 0, 1, 0, v.y, 0, 0, 1, v.z, 0, 0, 0, 1);
 	}
 
-	public var row0(get, set):Vec4;
-	public var row1(get, set):Vec4;
-	public var row2(get, set):Vec4;
-	public var row3(get, set):Vec4;
-	public var col0(get, set):Vec4;
-	public var col1(get, set):Vec4;
-	public var col2(get, set):Vec4;
-	public var col3(get, set):Vec4;
+	public var row0(get, set):ImVec4;
+	public var row1(get, set):ImVec4;
+	public var row2(get, set):ImVec4;
+	public var row3(get, set):ImVec4;
+	public var col0(get, set):ImVec4;
+	public var col1(get, set):ImVec4;
+	public var col2(get, set):ImVec4;
+	public var col3(get, set):ImVec4;
 
-	extern inline function get_row0():Vec4 {
-		final a = this;
+	extern inline function get_row0() {
 		return Vec4.of(a.e00, a.e01, a.e02, a.e03);
 	}
 
-	extern inline function get_row1():Vec4 {
-		final a = this;
+	extern inline function get_row1() {
 		return Vec4.of(a.e10, a.e11, a.e12, a.e13);
 	}
 
-	extern inline function get_row2():Vec4 {
-		final a = this;
+	extern inline function get_row2() {
 		return Vec4.of(a.e20, a.e21, a.e22, a.e23);
 	}
 
-	extern inline function get_row3():Vec4 {
-		final a = this;
+	extern inline function get_row3() {
 		return Vec4.of(a.e30, a.e31, a.e32, a.e33);
 	}
 
-	extern inline function set_row0(v:Vec4):Vec4 {
-		final a = this;
-		a.e00 = v.x;
-		a.e01 = v.y;
-		a.e02 = v.z;
-		a.e03 = v.w;
-		return row0;
-	}
-
-	extern inline function set_row1(v:Vec4):Vec4 {
-		final a = this;
-		a.e10 = v.x;
-		a.e11 = v.y;
-		a.e12 = v.z;
-		a.e13 = v.w;
-		return row1;
-	}
-
-	extern inline function set_row2(v:Vec4):Vec4 {
-		final a = this;
-		a.e20 = v.x;
-		a.e21 = v.y;
-		a.e22 = v.z;
-		a.e23 = v.w;
-		return row2;
-	}
-
-	extern inline function set_row3(v:Vec4):Vec4 {
-		final a = this;
-		a.e30 = v.x;
-		a.e31 = v.y;
-		a.e32 = v.z;
-		a.e33 = v.w;
-		return row3;
-	}
-
-	extern inline function get_col0():Vec4 {
-		final a = this;
+	extern inline function get_col0() {
 		return Vec4.of(a.e00, a.e10, a.e20, a.e30);
 	}
 
-	extern inline function get_col1():Vec4 {
-		final a = this;
+	extern inline function get_col1() {
 		return Vec4.of(a.e01, a.e11, a.e21, a.e31);
 	}
 
-	extern inline function get_col2():Vec4 {
-		final a = this;
+	extern inline function get_col2() {
 		return Vec4.of(a.e02, a.e12, a.e22, a.e32);
 	}
 
-	extern inline function get_col3():Vec4 {
-		final a = this;
+	extern inline function get_col3() {
 		return Vec4.of(a.e03, a.e13, a.e23, a.e33);
-	}
-
-	extern inline function set_col0(v:Vec4):Vec4 {
-		final a = this;
-		a.e00 = v.x;
-		a.e10 = v.y;
-		a.e20 = v.z;
-		a.e30 = v.w;
-		return col0;
-	}
-
-	extern inline function set_col1(v:Vec4):Vec4 {
-		final a = this;
-		a.e01 = v.x;
-		a.e11 = v.y;
-		a.e21 = v.z;
-		a.e31 = v.w;
-		return col1;
-	}
-
-	extern inline function set_col2(v:Vec4):Vec4 {
-		final a = this;
-		a.e02 = v.x;
-		a.e12 = v.y;
-		a.e22 = v.z;
-		a.e32 = v.w;
-		return col2;
-	}
-
-	extern inline function set_col3(v:Vec4):Vec4 {
-		final a = this;
-		a.e03 = v.x;
-		a.e13 = v.y;
-		a.e23 = v.z;
-		a.e33 = v.w;
-		return col3;
 	}
 
 	public var t(get, never):Mat4;
@@ -175,13 +102,12 @@ abstract Mat4(Mat4Data) from Mat4Data {
 	public var tr(get, never):Float;
 	public var inv(get, never):Mat4;
 
-	extern inline function get_t():Mat4 {
-		final a = this;
-		return of(a.e00, a.e10, a.e20, a.e30, a.e01, a.e11, a.e21, a.e31, a.e02, a.e12, a.e22, a.e32, a.e03, a.e13, a.e23, a.e33);
+	extern inline function get_t() {
+		return of(a.e00, a.e10, a.e20, a.e30, a.e01, a.e11, a.e21, a.e31, a.e02, a.e12, a.e22, a.e32, a.e03, a.e13,
+			a.e23, a.e33);
 	}
 
-	extern inline function get_det():Float {
-		final a = this;
+	extern inline function get_det() {
 		final e00 = a.e00;
 		final e01 = a.e01;
 		final e02 = a.e02;
@@ -208,13 +134,11 @@ abstract Mat4(Mat4Data) from Mat4Data {
 			e02 * (e10 * d2313 - e11 * d2303 + e13 * d2301) - e03 * (e10 * d2312 - e11 * d2302 + e12 * d2301);
 	}
 
-	extern inline function get_tr():Float {
-		final a = this;
+	extern inline function get_tr() {
 		return a.e00 + a.e11 + a.e22 + a.e33;
 	}
 
-	extern inline function get_inv():Mat4 {
-		final a = this;
+	extern inline function get_inv() {
 		final e00 = a.e00;
 		final e01 = a.e01;
 		final e02 = a.e02;
@@ -262,38 +186,46 @@ abstract Mat4(Mat4Data) from Mat4Data {
 		var idet = e00 * d00 - e01 * d01 + e02 * d02 - e03 * d03;
 		if (idet != 0)
 			idet = 1 / idet;
-		return of(d00 * idet, -d10 * idet, d20 * idet, -d30 * idet, -d01 * idet, d11 * idet, -d21 * idet, d31 * idet, d02 * idet,
-			-d12 * idet, d22 * idet, -d32 * idet, -d03 * idet, d13 * idet, -d23 * idet, d33 * idet);
+		return of(d00 * idet, -d10 * idet, d20 * idet, -d30 * idet, -d01 * idet, d11 * idet, -d21 * idet, d31 * idet,
+			d02 * idet, -d12 * idet, d22 * idet, -d32 * idet, -d03 * idet, d13 * idet, -d23 * idet, d33 * idet);
 	}
 
 	extern static inline function unary(a:Mat4, f:(a:Float) -> Float):Mat4 {
-		return of(f(a.e00), f(a.e01), f(a.e02), f(a.e03), f(a.e10), f(a.e11), f(a.e12), f(a.e13), f(a.e20), f(a.e21), f(a.e22), f(a.e23),
-			f(a.e30), f(a.e31), f(a.e32), f(a.e33));
+		return of(f(a.e00), f(a.e01), f(a.e02), f(a.e03), f(a.e10), f(a.e11), f(a.e12), f(a.e13), f(a.e20), f(a.e21),
+			f(a.e22), f(a.e23), f(a.e30), f(a.e31), f(a.e32), f(a.e33));
 	}
 
 	extern static inline function binary(a:Mat4, b:Mat4, f:(a:Float, b:Float) -> Float):Mat4 {
-		return of(f(a.e00, b.e00), f(a.e01, b.e01), f(a.e02, b.e02), f(a.e03, b.e03), f(a.e10, b.e10), f(a.e11, b.e11), f(a.e12, b.e12),
-			f(a.e13, b.e13), f(a.e20, b.e20), f(a.e21, b.e21), f(a.e22, b.e22), f(a.e23, b.e23), f(a.e30, b.e30), f(a.e31, b.e31), f(a.e32,
-				b.e32), f(a.e33, b.e33));
+		return of(f(a.e00, b.e00), f(a.e01, b.e01), f(a.e02, b.e02), f(a.e03, b.e03), f(a.e10, b.e10), f(a.e11, b.e11),
+			f(a.e12, b.e12), f(a.e13, b.e13), f(a.e20, b.e20), f(a.e21, b.e21), f(a.e22, b.e22), f(a.e23, b.e23),
+			f(a.e30, b.e30), f(a.e31, b.e31), f(a.e32, b.e32), f(a.e33, b.e33));
+	}
+
+	extern public static inline function emul(a:Mat4, b:Mat4):Mat4 {
+		return binary(a, b, (a, b) -> a * b);
+	}
+
+	extern public static inline function ediv(a:Mat4, b:Mat4):Mat4 {
+		return binary(a, b, (a, b) -> a / b);
 	}
 
 	@:op(-A)
-	extern public static inline function neg(a:Mat4):Mat4 {
+	extern static inline function neg(a:Mat4):Mat4 {
 		return unary(a, a -> -a);
 	}
 
 	@:op(A + B)
-	extern public static inline function add(a:Mat4, b:Mat4):Mat4 {
+	extern static inline function add(a:Mat4, b:Mat4):Mat4 {
 		return binary(a, b, (a, b) -> a + b);
 	}
 
 	@:op(A - B)
-	extern public static inline function sub(a:Mat4, b:Mat4):Mat4 {
+	extern static inline function sub(a:Mat4, b:Mat4):Mat4 {
 		return binary(a, b, (a, b) -> a - b);
 	}
 
 	@:op(A * B)
-	extern public static inline function mul(a:Mat4, b:Mat4):Mat4 {
+	extern static inline function mul(a:Mat4, b:Mat4):Mat4 {
 		final a00 = a.e00;
 		final a01 = a.e01;
 		final a02 = a.e02;
@@ -326,125 +258,58 @@ abstract Mat4(Mat4Data) from Mat4Data {
 		final b31 = b.e31;
 		final b32 = b.e32;
 		final b33 = b.e33;
-		return of(a00 * b00 + a01 * b10 + a02 * b20 + a03 * b30, a00 * b01 + a01 * b11 + a02 * b21 + a03 * b31, a00 * b02 + a01 * b12 +
-			a02 * b22 + a03 * b32, a00 * b03 + a01 * b13 + a02 * b23 + a03 * b33, a10 * b00 + a11 * b10 + a12 * b20 + a13 * b30,
-			a10 * b01 + a11 * b11 + a12 * b21 + a13 * b31, a10 * b02 + a11 * b12 + a12 * b22 + a13 * b32, a10 * b03 + a11 * b13 +
-			a12 * b23 + a13 * b33, a20 * b00 + a21 * b10 + a22 * b20 + a23 * b30, a20 * b01 + a21 * b11 + a22 * b21 + a23 * b31,
-			a20 * b02 + a21 * b12 + a22 * b22 + a23 * b32, a20 * b03 + a21 * b13 + a22 * b23 + a23 * b33, a30 * b00 + a31 * b10 +
-			a32 * b20 + a33 * b30, a30 * b01 + a31 * b11 + a32 * b21 + a33 * b31, a30 * b02 + a31 * b12 + a32 * b22 + a33 * b32,
-			a30 * b03 + a31 * b13 + a32 * b23 + a33 * b33);
+		return of(a00 * b00 + a01 * b10 + a02 * b20 + a03 * b30, a00 * b01 + a01 * b11 + a02 * b21 + a03 * b31,
+			a00 * b02 + a01 * b12 + a02 * b22 + a03 * b32, a00 * b03 + a01 * b13 + a02 * b23 + a03 * b33, a10 * b00 +
+			a11 * b10 + a12 * b20 + a13 * b30, a10 * b01 + a11 * b11 + a12 * b21 + a13 * b31, a10 * b02 + a11 * b12 +
+			a12 * b22 + a13 * b32, a10 * b03 + a11 * b13 + a12 * b23 + a13 * b33, a20 * b00 + a21 * b10 + a22 * b20 +
+			a23 * b30, a20 * b01 + a21 * b11 + a22 * b21 + a23 * b31, a20 * b02 + a21 * b12 + a22 * b22 + a23 * b32,
+			a20 * b03 + a21 * b13 + a22 * b23 + a23 * b33, a30 * b00 + a31 * b10 + a32 * b20 + a33 * b30, a30 * b01 +
+			a31 * b11 + a32 * b21 + a33 * b31, a30 * b02 + a31 * b12 + a32 * b22 + a33 * b32, a30 * b03 + a31 * b13 +
+			a32 * b23 + a33 * b33);
 	}
 
 	@:op(A * B)
-	extern public static inline function mulVec(a:Mat4, b:Vec4):Vec4 {
-		return Vec4.of(a.e00 * b.x + a.e01 * b.y + a.e02 * b.z + a.e03 * b.w, a.e10 * b.x + a.e11 * b.y + a.e12 * b.z + a.e13 * b.w,
-			a.e20 * b.x + a.e21 * b.y + a.e22 * b.z + a.e23 * b.w, a.e30 * b.x + a.e31 * b.y + a.e32 * b.z + a.e33 * b.w);
+	extern static inline function mulVec(a:Mat4, b:Vec4):Vec4 {
+		return Vec4.of(a.e00 * b.x + a.e01 * b.y + a.e02 * b.z + a.e03 * b.w, a.e10 * b.x + a.e11 * b.y + a.e12 * b.z +
+			a.e13 * b.w, a.e20 * b.x + a.e21 * b.y + a.e22 * b.z + a.e23 * b.w, a.e30 * b.x + a.e31 * b.y +
+			a.e32 * b.z + a.e33 * b.w);
 	}
 
 	@:op(A / B)
-	extern public static inline function div(a:Mat4, b:Mat4):Mat4 {
+	extern static inline function div(a:Mat4, b:Mat4):Mat4 {
 		return a * b.inv;
-	}
-
-	extern public static inline function emul(a:Mat4, b:Mat4):Mat4 {
-		return binary(a, b, (a, b) -> a * b);
-	}
-
-	extern public static inline function ediv(a:Mat4, b:Mat4):Mat4 {
-		return binary(a, b, (a, b) -> a / b);
 	}
 
 	@:op(A + B)
 	@:commutative
-	extern public static inline function addf(a:Mat4, b:Float):Mat4 {
+	extern static inline function addf(a:Mat4, b:Float):Mat4 {
 		return unary(a, a -> a + b);
 	}
 
 	@:op(A - B)
-	extern public static inline function subf(a:Mat4, b:Float):Mat4 {
+	extern static inline function subf(a:Mat4, b:Float):Mat4 {
 		return unary(a, a -> a - b);
 	}
 
 	@:op(A - B)
-	extern public static inline function fsub(a:Float, b:Mat4):Mat4 {
+	extern static inline function fsub(a:Float, b:Mat4):Mat4 {
 		return unary(b, b -> a - b);
 	}
 
 	@:op(A * B)
 	@:commutative
-	extern public static inline function mulf(a:Mat4, b:Float):Mat4 {
+	extern static inline function mulf(a:Mat4, b:Float):Mat4 {
 		return unary(a, a -> a * b);
 	}
 
 	@:op(A / B)
-	extern public static inline function divf(a:Mat4, b:Float):Mat4 {
+	extern static inline function divf(a:Mat4, b:Float):Mat4 {
 		return unary(a, a -> a / b);
 	}
 
 	@:op(A / B)
-	extern public static inline function fdiv(a:Float, b:Mat4):Mat4 {
+	extern static inline function fdiv(a:Float, b:Mat4):Mat4 {
 		return a * b.inv;
-	}
-
-	@:op(A <<= B)
-	extern public static inline function assign(a:Mat4, b:Mat4):Mat4 {
-		a.e00 = b.e00;
-		a.e01 = b.e01;
-		a.e02 = b.e02;
-		a.e03 = b.e03;
-		a.e10 = b.e10;
-		a.e11 = b.e11;
-		a.e12 = b.e12;
-		a.e13 = b.e13;
-		a.e20 = b.e20;
-		a.e21 = b.e21;
-		a.e22 = b.e22;
-		a.e23 = b.e23;
-		a.e30 = b.e30;
-		a.e31 = b.e31;
-		a.e32 = b.e32;
-		a.e33 = b.e33;
-		return a;
-	}
-
-	@:op(A += B)
-	extern public static inline function addEq(a:Mat4, b:Mat4):Mat4 {
-		return a <<= a + b;
-	}
-
-	@:op(A -= B)
-	extern public static inline function subEq(a:Mat4, b:Mat4):Mat4 {
-		return a <<= a - b;
-	}
-
-	@:op(A *= B)
-	extern public static inline function mulEq(a:Mat4, b:Mat4):Mat4 {
-		return a <<= a * b;
-	}
-
-	@:op(A /= B)
-	extern public static inline function divEq(a:Mat4, b:Mat4):Mat4 {
-		return a <<= a / b;
-	}
-
-	@:op(A += B)
-	extern public static inline function addfEq(a:Mat4, b:Float):Mat4 {
-		return a <<= a + b;
-	}
-
-	@:op(A -= B)
-	extern public static inline function subfEq(a:Mat4, b:Float):Mat4 {
-		return a <<= a - b;
-	}
-
-	@:op(A *= B)
-	extern public static inline function mulfEq(a:Mat4, b:Float):Mat4 {
-		return a <<= a * b;
-	}
-
-	@:op(A /= B)
-	extern public static inline function divfEq(a:Mat4, b:Float):Mat4 {
-		return a <<= a / b;
 	}
 
 	extern public inline function getRow(index:Int):Vec4 {
@@ -482,29 +347,161 @@ abstract Mat4(Mat4Data) from Mat4Data {
 	}
 
 	extern public inline function toMat2():Mat2 {
-		final a = this;
 		return Mat2.of(a.e00, a.e01, a.e10, a.e11);
 	}
 
 	extern public inline function toMat3():Mat3 {
-		final a = this;
 		return Mat3.of(a.e00, a.e01, a.e02, a.e10, a.e11, a.e12, a.e20, a.e21, a.e22);
 	}
 
-	extern public inline function set(e00:Float, e01:Float, e02:Float, e03:Float, e10:Float, e11:Float, e12:Float, e13:Float, e20:Float,
-			e21:Float, e22:Float, e23:Float, e30:Float, e31:Float, e32:Float, e33:Float):Mat4 {
-		return assign(this, of(e00, e01, e02, e03, e10, e11, e12, e13, e20, e21, e22, e23, e30, e31, e32, e33));
+	extern public inline function toAffineMat2():Mat2 {
+		return Mat2.of(a.e00, a.e03, 0, 1);
+	}
+
+	extern public inline function toAffineMat3():Mat3 {
+		return Mat3.of(a.e00, a.e01, a.e03, a.e10, a.e11, a.e13, 0, 0, 1);
 	}
 
 	extern public inline function copy():Mat4 {
-		final a = this;
-		return of(a.e00, a.e01, a.e02, a.e03, a.e10, a.e11, a.e12, a.e13, a.e20, a.e21, a.e22, a.e23, a.e30, a.e31, a.e32, a.e33);
+		return of(a.e00, a.e01, a.e02, a.e03, a.e10, a.e11, a.e12, a.e13, a.e20, a.e21, a.e22, a.e23, a.e30, a.e31,
+			a.e32, a.e33);
 	}
 
 	public function toString():String {
-		final a = this;
 		return
 			'Mat4(${a.e00}, ${a.e01}, ${a.e02}, ${a.e03}; ${a.e10}, ${a.e11}, ${a.e12}, ${a.e13}; ${a.e20}, ${a.e21}, ${a.e22}, ${a.e23}; ${a.e30}, ${a.e31}, ${a.e32}, ${a.e33})';
+	}
+
+	// following methods mutate the state
+
+	@:op(A <<= B)
+	extern inline function assign(b:Mat4):Mat4 {
+		a.e00 = b.e00;
+		a.e01 = b.e01;
+		a.e02 = b.e02;
+		a.e03 = b.e03;
+		a.e10 = b.e10;
+		a.e11 = b.e11;
+		a.e12 = b.e12;
+		a.e13 = b.e13;
+		a.e20 = b.e20;
+		a.e21 = b.e21;
+		a.e22 = b.e22;
+		a.e23 = b.e23;
+		a.e30 = b.e30;
+		a.e31 = b.e31;
+		a.e32 = b.e32;
+		a.e33 = b.e33;
+		return a;
+	}
+
+	@:op(A += B)
+	extern inline function addEq(b:Mat4):Mat4 {
+		return a <<= a + b;
+	}
+
+	@:op(A -= B)
+	extern inline function subEq(b:Mat4):Mat4 {
+		return a <<= a - b;
+	}
+
+	@:op(A *= B)
+	extern inline function mulEq(b:Mat4):Mat4 {
+		return a <<= a * b;
+	}
+
+	@:op(A /= B)
+	extern inline function divEq(b:Mat4):Mat4 {
+		return a <<= a / b;
+	}
+
+	@:op(A += B)
+	extern inline function addfEq(b:Float):Mat4 {
+		return a <<= a + b;
+	}
+
+	@:op(A -= B)
+	extern inline function subfEq(b:Float):Mat4 {
+		return a <<= a - b;
+	}
+
+	@:op(A *= B)
+	extern inline function mulfEq(b:Float):Mat4 {
+		return a <<= a * b;
+	}
+
+	@:op(A /= B)
+	extern inline function divfEq(b:Float):Mat4 {
+		return a <<= a / b;
+	}
+
+	extern public inline function set(e00:Float, e01:Float, e02:Float, e03:Float, e10:Float, e11:Float, e12:Float,
+			e13:Float, e20:Float, e21:Float, e22:Float, e23:Float, e30:Float, e31:Float, e32:Float, e33:Float):Mat4 {
+		return assign(of(e00, e01, e02, e03, e10, e11, e12, e13, e20, e21, e22, e23, e30, e31, e32, e33));
+	}
+
+	extern inline function set_row0(v) {
+		a.e00 = v.x;
+		a.e01 = v.y;
+		a.e02 = v.z;
+		a.e03 = v.w;
+		return row0;
+	}
+
+	extern inline function set_row1(v) {
+		a.e10 = v.x;
+		a.e11 = v.y;
+		a.e12 = v.z;
+		a.e13 = v.w;
+		return row1;
+	}
+
+	extern inline function set_row2(v) {
+		a.e20 = v.x;
+		a.e21 = v.y;
+		a.e22 = v.z;
+		a.e23 = v.w;
+		return row2;
+	}
+
+	extern inline function set_row3(v) {
+		a.e30 = v.x;
+		a.e31 = v.y;
+		a.e32 = v.z;
+		a.e33 = v.w;
+		return row3;
+	}
+
+	extern inline function set_col0(v) {
+		a.e00 = v.x;
+		a.e10 = v.y;
+		a.e20 = v.z;
+		a.e30 = v.w;
+		return col0;
+	}
+
+	extern inline function set_col1(v) {
+		a.e01 = v.x;
+		a.e11 = v.y;
+		a.e21 = v.z;
+		a.e31 = v.w;
+		return col1;
+	}
+
+	extern inline function set_col2(v) {
+		a.e02 = v.x;
+		a.e12 = v.y;
+		a.e22 = v.z;
+		a.e32 = v.w;
+		return col2;
+	}
+
+	extern inline function set_col3(v) {
+		a.e03 = v.x;
+		a.e13 = v.y;
+		a.e23 = v.z;
+		a.e33 = v.w;
+		return col3;
 	}
 }
 
@@ -526,8 +523,8 @@ private class Mat4Data {
 	public var e32:Float;
 	public var e33:Float;
 
-	public inline function new(e00:Float, e01:Float, e02:Float, e03:Float, e10:Float, e11:Float, e12:Float, e13:Float, e20:Float,
-			e21:Float, e22:Float, e23:Float, e30:Float, e31:Float, e32:Float, e33:Float) {
+	public inline function new(e00:Float, e01:Float, e02:Float, e03:Float, e10:Float, e11:Float, e12:Float, e13:Float,
+			e20:Float, e21:Float, e22:Float, e23:Float, e30:Float, e31:Float, e32:Float, e33:Float) {
 		this.e00 = e00;
 		this.e01 = e01;
 		this.e02 = e02;

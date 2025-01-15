@@ -10,6 +10,11 @@ abstract Vec4(Vec4Data) from Vec4Data {
 		return new Vec4(x, y, z, w);
 	}
 
+	var a(get, never):Vec4;
+
+	extern inline function get_a()
+		return this;
+
 	public static var zero(get, never):Vec4;
 	public static var one(get, never):Vec4;
 	public static var ex(get, never):Vec4;
@@ -17,27 +22,27 @@ abstract Vec4(Vec4Data) from Vec4Data {
 	public static var ez(get, never):Vec4;
 	public static var ew(get, never):Vec4;
 
-	extern static inline function get_zero():Vec4 {
+	extern static inline function get_zero() {
 		return of(0, 0, 0, 0);
 	}
 
-	extern static inline function get_one():Vec4 {
+	extern static inline function get_one() {
 		return of(1, 1, 1, 1);
 	}
 
-	extern static inline function get_ex():Vec4 {
+	extern static inline function get_ex() {
 		return of(1, 0, 0, 0);
 	}
 
-	extern static inline function get_ey():Vec4 {
+	extern static inline function get_ey() {
 		return of(0, 1, 0, 0);
 	}
 
-	extern static inline function get_ez():Vec4 {
+	extern static inline function get_ez() {
 		return of(0, 0, 1, 0);
 	}
 
-	extern static inline function get_ew():Vec4 {
+	extern static inline function get_ew() {
 		return of(0, 0, 0, 1);
 	}
 
@@ -46,39 +51,35 @@ abstract Vec4(Vec4Data) from Vec4Data {
 	public var normalized(get, never):Vec4;
 	public var diag(get, never):Mat4;
 
-	extern inline function get_length():Float {
+	extern inline function get_length() {
 		return Math.sqrt(lengthSq);
 	}
 
-	extern inline function get_lengthSq():Float {
-		return dot(this);
+	extern inline function get_lengthSq() {
+		return dot(a);
 	}
 
-	extern inline function get_normalized():Vec4 {
+	extern inline function get_normalized() {
 		var l = length;
 		if (l > 0)
 			l = 1 / l;
-		return mulf(this, l);
+		return mulf(a, l);
 	}
 
-	extern inline function get_diag():Mat4 {
-		final a = this;
+	extern inline function get_diag() {
 		return Mat4.of(a.x, 0, 0, 0, 0, a.y, 0, 0, 0, 0, a.z, 0, 0, 0, 0, a.w);
 	}
 
 	extern public inline function dot(b:Vec4):Float {
-		final a = this;
 		return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 	}
 
 	extern public inline function tensorDot(b:Vec4):Mat4 {
-		final a = this;
-		return Mat4.of(a.x * b.x, a.x * b.y, a.x * b.z, a.x * b.w, a.y * b.x, a.y * b.y, a.y * b.z, a.y * b.w, a.z * b.x, a.z * b.y,
-			a.z * b.z, a.z * b.w, a.w * b.x, a.w * b.y, a.w * b.z, a.w * b.w);
+		return Mat4.of(a.x * b.x, a.x * b.y, a.x * b.z, a.x * b.w, a.y * b.x, a.y * b.y, a.y * b.z, a.y * b.w,
+			a.z * b.x, a.z * b.y, a.z * b.z, a.z * b.w, a.w * b.x, a.w * b.y, a.w * b.z, a.w * b.w);
 	}
 
 	extern public inline function toQuat():Quat {
-		final a = this;
 		return Quat.of(a.x, a.y, a.z, a.w);
 	}
 
@@ -95,80 +96,106 @@ abstract Vec4(Vec4Data) from Vec4Data {
 	}
 
 	extern public inline function abs():Vec4 {
-		return unary(this, x -> x < 0 ? -x : x);
+		return unary(a, x -> x < 0 ? -x : x);
 	}
 
 	extern public inline function min(b:Vec4):Vec4 {
-		return binary(this, b, (x, y) -> x < y ? x : y);
+		return binary(a, b, (x, y) -> x < y ? x : y);
 	}
 
 	extern public inline function max(b:Vec4):Vec4 {
-		return binary(this, b, (x, y) -> x > y ? x : y);
+		return binary(a, b, (x, y) -> x > y ? x : y);
 	}
 
 	extern public inline function clamp(min:Vec4, max:Vec4):Vec4 {
-		return ternary(this, min, max, (x, min, max) -> x < min ? min : x > max ? max : x);
+		return ternary(a, min, max, (x, min, max) -> x < min ? min : x > max ? max : x);
 	}
 
 	@:op(-A)
-	extern public static inline function neg(a:Vec4):Vec4 {
+	extern static inline function neg(a:Vec4):Vec4 {
 		return unary(a, a -> -a);
 	}
 
 	@:op(A + B)
-	extern public static inline function add(a:Vec4, b:Vec4):Vec4 {
+	extern static inline function add(a:Vec4, b:Vec4):Vec4 {
 		return binary(a, b, (a, b) -> a + b);
 	}
 
 	@:op(A - B)
-	extern public static inline function sub(a:Vec4, b:Vec4):Vec4 {
+	extern static inline function sub(a:Vec4, b:Vec4):Vec4 {
 		return binary(a, b, (a, b) -> a - b);
 	}
 
 	@:op(A * B)
-	extern public static inline function mul(a:Vec4, b:Vec4):Vec4 {
+	extern static inline function mul(a:Vec4, b:Vec4):Vec4 {
 		return binary(a, b, (a, b) -> a * b);
 	}
 
 	@:op(A / B)
-	extern public static inline function div(a:Vec4, b:Vec4):Vec4 {
+	extern static inline function div(a:Vec4, b:Vec4):Vec4 {
 		return binary(a, b, (a, b) -> a / b);
 	}
 
 	@:op(A + B)
 	@:commutative
-	extern public static inline function addf(a:Vec4, b:Float):Vec4 {
+	extern static inline function addf(a:Vec4, b:Float):Vec4 {
 		return unary(a, a -> a + b);
 	}
 
 	@:op(A - B)
-	extern public static inline function subf(a:Vec4, b:Float):Vec4 {
+	extern static inline function subf(a:Vec4, b:Float):Vec4 {
 		return unary(a, a -> a - b);
 	}
 
 	@:op(A - B)
-	extern public static inline function fsub(a:Float, b:Vec4):Vec4 {
+	extern static inline function fsub(a:Float, b:Vec4):Vec4 {
 		return unary(b, b -> a - b);
 	}
 
 	@:op(A * B)
 	@:commutative
-	extern public static inline function mulf(a:Vec4, b:Float):Vec4 {
+	extern static inline function mulf(a:Vec4, b:Float):Vec4 {
 		return unary(a, a -> a * b);
 	}
 
 	@:op(A / B)
-	extern public static inline function divf(a:Vec4, b:Float):Vec4 {
+	extern static inline function divf(a:Vec4, b:Float):Vec4 {
 		return unary(a, a -> a / b);
 	}
 
 	@:op(A / B)
-	extern public static inline function fdiv(a:Float, b:Vec4):Vec4 {
+	extern static inline function fdiv(a:Float, b:Vec4):Vec4 {
 		return unary(b, b -> a / b);
 	}
 
+	@:arrayAccess
+	extern inline function get(index:Int):Float {
+		return switch index {
+			case 0:
+				a.x;
+			case 1:
+				a.y;
+			case 2:
+				a.z;
+			case 3:
+				a.w;
+			case _:
+				throw "Vec4 index out of bounds: " + index;
+		}
+	}
+
+	extern public inline function map(f:(component:Float) -> Float):Vec4 {
+		return unary(a, f);
+	}
+
+	public function toString():String {
+		return 'Vec4(${a.x}, ${a.y}, ${a.z}, ${a.w})';
+	}
+
+	// following methods mutate the state
+
 	@:op(A <<= B)
-	extern public static inline function assign(a:Vec4, b:Vec4):Vec4 {
+	extern inline function assign(b:Vec4):Vec4 {
 		a.x = b.x;
 		a.y = b.y;
 		a.z = b.z;
@@ -177,72 +204,47 @@ abstract Vec4(Vec4Data) from Vec4Data {
 	}
 
 	@:op(A += B)
-	extern public static inline function addEq(a:Vec4, b:Vec4):Vec4 {
+	extern inline function addEq(b:Vec4):Vec4 {
 		return a <<= a + b;
 	}
 
 	@:op(A -= B)
-	extern public static inline function subEq(a:Vec4, b:Vec4):Vec4 {
+	extern inline function subEq(b:Vec4):Vec4 {
 		return a <<= a - b;
 	}
 
 	@:op(A *= B)
-	extern public static inline function mulEq(a:Vec4, b:Vec4):Vec4 {
+	extern inline function mulEq(b:Vec4):Vec4 {
 		return a <<= a * b;
 	}
 
 	@:op(A /= B)
-	extern public static inline function divEq(a:Vec4, b:Vec4):Vec4 {
+	extern inline function divEq(b:Vec4):Vec4 {
 		return a <<= a / b;
 	}
 
 	@:op(A += B)
-	extern public static inline function addfEq(a:Vec4, b:Float):Vec4 {
+	extern inline function addfEq(b:Float):Vec4 {
 		return a <<= a + b;
 	}
 
 	@:op(A -= B)
-	extern public static inline function subfEq(a:Vec4, b:Float):Vec4 {
+	extern inline function subfEq(b:Float):Vec4 {
 		return a <<= a - b;
 	}
 
 	@:op(A *= B)
-	extern public static inline function mulfEq(a:Vec4, b:Float):Vec4 {
+	extern inline function mulfEq(b:Float):Vec4 {
 		return a <<= a * b;
 	}
 
 	@:op(A /= B)
-	extern public static inline function divfEq(a:Vec4, b:Float):Vec4 {
+	extern inline function divfEq(b:Float):Vec4 {
 		return a <<= a / b;
 	}
 
-	@:arrayAccess
-	extern public inline function get(index:Int):Float {
-		return switch index {
-			case 0:
-				this.x;
-			case 1:
-				this.y;
-			case 2:
-				this.z;
-			case 3:
-				this.w;
-			case _:
-				throw "Vec4 index out of bounds: " + index;
-		}
-	}
-
-	extern public inline function map(f:(component:Float) -> Float):Vec4 {
-		return unary(this, f);
-	}
-
 	extern public inline function set(x:Float, y:Float, z:Float, w:Float):Vec4 {
-		return assign(this, of(x, y, z, w));
-	}
-
-	public function toString():String {
-		final a = this;
-		return 'Vec4(${a.x}, ${a.y}, ${a.z}, ${a.w})';
+		return a <<= of(x, y, z, w);
 	}
 
 	public var xx(get, never):Vec2;
@@ -582,1013 +584,1013 @@ abstract Vec4(Vec4Data) from Vec4Data {
 	public var wwwz(get, never):Vec4;
 	public var wwww(get, never):Vec4;
 
-	extern inline function get_xx():Vec2
-		return Vec2.of(this.x, this.x);
+	extern inline function get_xx()
+		return Vec2.of(a.x, a.x);
 
-	extern inline function get_xy():Vec2
-		return Vec2.of(this.x, this.y);
+	extern inline function get_xy()
+		return Vec2.of(a.x, a.y);
 
-	extern inline function get_xz():Vec2
-		return Vec2.of(this.x, this.z);
+	extern inline function get_xz()
+		return Vec2.of(a.x, a.z);
 
-	extern inline function get_xw():Vec2
-		return Vec2.of(this.x, this.w);
+	extern inline function get_xw()
+		return Vec2.of(a.x, a.w);
 
-	extern inline function get_yx():Vec2
-		return Vec2.of(this.y, this.x);
+	extern inline function get_yx()
+		return Vec2.of(a.y, a.x);
 
-	extern inline function get_yy():Vec2
-		return Vec2.of(this.y, this.y);
+	extern inline function get_yy()
+		return Vec2.of(a.y, a.y);
 
-	extern inline function get_yz():Vec2
-		return Vec2.of(this.y, this.z);
+	extern inline function get_yz()
+		return Vec2.of(a.y, a.z);
 
-	extern inline function get_yw():Vec2
-		return Vec2.of(this.y, this.w);
+	extern inline function get_yw()
+		return Vec2.of(a.y, a.w);
 
-	extern inline function get_zx():Vec2
-		return Vec2.of(this.z, this.x);
+	extern inline function get_zx()
+		return Vec2.of(a.z, a.x);
 
-	extern inline function get_zy():Vec2
-		return Vec2.of(this.z, this.y);
+	extern inline function get_zy()
+		return Vec2.of(a.z, a.y);
 
-	extern inline function get_zz():Vec2
-		return Vec2.of(this.z, this.z);
+	extern inline function get_zz()
+		return Vec2.of(a.z, a.z);
 
-	extern inline function get_zw():Vec2
-		return Vec2.of(this.z, this.w);
+	extern inline function get_zw()
+		return Vec2.of(a.z, a.w);
 
-	extern inline function get_wx():Vec2
-		return Vec2.of(this.w, this.x);
+	extern inline function get_wx()
+		return Vec2.of(a.w, a.x);
 
-	extern inline function get_wy():Vec2
-		return Vec2.of(this.w, this.y);
+	extern inline function get_wy()
+		return Vec2.of(a.w, a.y);
 
-	extern inline function get_wz():Vec2
-		return Vec2.of(this.w, this.z);
+	extern inline function get_wz()
+		return Vec2.of(a.w, a.z);
 
-	extern inline function get_ww():Vec2
-		return Vec2.of(this.w, this.w);
+	extern inline function get_ww()
+		return Vec2.of(a.w, a.w);
 
-	extern inline function get_xxx():Vec3
-		return Vec3.of(this.x, this.x, this.x);
+	extern inline function get_xxx()
+		return Vec3.of(a.x, a.x, a.x);
 
-	extern inline function get_xxy():Vec3
-		return Vec3.of(this.x, this.x, this.y);
+	extern inline function get_xxy()
+		return Vec3.of(a.x, a.x, a.y);
 
-	extern inline function get_xxz():Vec3
-		return Vec3.of(this.x, this.x, this.z);
+	extern inline function get_xxz()
+		return Vec3.of(a.x, a.x, a.z);
 
-	extern inline function get_xxw():Vec3
-		return Vec3.of(this.x, this.x, this.w);
+	extern inline function get_xxw()
+		return Vec3.of(a.x, a.x, a.w);
 
-	extern inline function get_xyx():Vec3
-		return Vec3.of(this.x, this.y, this.x);
+	extern inline function get_xyx()
+		return Vec3.of(a.x, a.y, a.x);
 
-	extern inline function get_xyy():Vec3
-		return Vec3.of(this.x, this.y, this.y);
+	extern inline function get_xyy()
+		return Vec3.of(a.x, a.y, a.y);
 
-	extern inline function get_xyz():Vec3
-		return Vec3.of(this.x, this.y, this.z);
+	extern inline function get_xyz()
+		return Vec3.of(a.x, a.y, a.z);
 
-	extern inline function get_xyw():Vec3
-		return Vec3.of(this.x, this.y, this.w);
+	extern inline function get_xyw()
+		return Vec3.of(a.x, a.y, a.w);
 
-	extern inline function get_xzx():Vec3
-		return Vec3.of(this.x, this.z, this.x);
+	extern inline function get_xzx()
+		return Vec3.of(a.x, a.z, a.x);
 
-	extern inline function get_xzy():Vec3
-		return Vec3.of(this.x, this.z, this.y);
+	extern inline function get_xzy()
+		return Vec3.of(a.x, a.z, a.y);
 
-	extern inline function get_xzz():Vec3
-		return Vec3.of(this.x, this.z, this.z);
+	extern inline function get_xzz()
+		return Vec3.of(a.x, a.z, a.z);
 
-	extern inline function get_xzw():Vec3
-		return Vec3.of(this.x, this.z, this.w);
+	extern inline function get_xzw()
+		return Vec3.of(a.x, a.z, a.w);
 
-	extern inline function get_xwx():Vec3
-		return Vec3.of(this.x, this.w, this.x);
+	extern inline function get_xwx()
+		return Vec3.of(a.x, a.w, a.x);
 
-	extern inline function get_xwy():Vec3
-		return Vec3.of(this.x, this.w, this.y);
+	extern inline function get_xwy()
+		return Vec3.of(a.x, a.w, a.y);
 
-	extern inline function get_xwz():Vec3
-		return Vec3.of(this.x, this.w, this.z);
+	extern inline function get_xwz()
+		return Vec3.of(a.x, a.w, a.z);
 
-	extern inline function get_xww():Vec3
-		return Vec3.of(this.x, this.w, this.w);
+	extern inline function get_xww()
+		return Vec3.of(a.x, a.w, a.w);
 
-	extern inline function get_yxx():Vec3
-		return Vec3.of(this.y, this.x, this.x);
+	extern inline function get_yxx()
+		return Vec3.of(a.y, a.x, a.x);
 
-	extern inline function get_yxy():Vec3
-		return Vec3.of(this.y, this.x, this.y);
+	extern inline function get_yxy()
+		return Vec3.of(a.y, a.x, a.y);
 
-	extern inline function get_yxz():Vec3
-		return Vec3.of(this.y, this.x, this.z);
+	extern inline function get_yxz()
+		return Vec3.of(a.y, a.x, a.z);
 
-	extern inline function get_yxw():Vec3
-		return Vec3.of(this.y, this.x, this.w);
+	extern inline function get_yxw()
+		return Vec3.of(a.y, a.x, a.w);
 
-	extern inline function get_yyx():Vec3
-		return Vec3.of(this.y, this.y, this.x);
+	extern inline function get_yyx()
+		return Vec3.of(a.y, a.y, a.x);
 
-	extern inline function get_yyy():Vec3
-		return Vec3.of(this.y, this.y, this.y);
+	extern inline function get_yyy()
+		return Vec3.of(a.y, a.y, a.y);
 
-	extern inline function get_yyz():Vec3
-		return Vec3.of(this.y, this.y, this.z);
+	extern inline function get_yyz()
+		return Vec3.of(a.y, a.y, a.z);
 
-	extern inline function get_yyw():Vec3
-		return Vec3.of(this.y, this.y, this.w);
+	extern inline function get_yyw()
+		return Vec3.of(a.y, a.y, a.w);
 
-	extern inline function get_yzx():Vec3
-		return Vec3.of(this.y, this.z, this.x);
+	extern inline function get_yzx()
+		return Vec3.of(a.y, a.z, a.x);
 
-	extern inline function get_yzy():Vec3
-		return Vec3.of(this.y, this.z, this.y);
+	extern inline function get_yzy()
+		return Vec3.of(a.y, a.z, a.y);
 
-	extern inline function get_yzz():Vec3
-		return Vec3.of(this.y, this.z, this.z);
+	extern inline function get_yzz()
+		return Vec3.of(a.y, a.z, a.z);
 
-	extern inline function get_yzw():Vec3
-		return Vec3.of(this.y, this.z, this.w);
+	extern inline function get_yzw()
+		return Vec3.of(a.y, a.z, a.w);
 
-	extern inline function get_ywx():Vec3
-		return Vec3.of(this.y, this.w, this.x);
+	extern inline function get_ywx()
+		return Vec3.of(a.y, a.w, a.x);
 
-	extern inline function get_ywy():Vec3
-		return Vec3.of(this.y, this.w, this.y);
+	extern inline function get_ywy()
+		return Vec3.of(a.y, a.w, a.y);
 
-	extern inline function get_ywz():Vec3
-		return Vec3.of(this.y, this.w, this.z);
+	extern inline function get_ywz()
+		return Vec3.of(a.y, a.w, a.z);
 
-	extern inline function get_yww():Vec3
-		return Vec3.of(this.y, this.w, this.w);
+	extern inline function get_yww()
+		return Vec3.of(a.y, a.w, a.w);
 
-	extern inline function get_zxx():Vec3
-		return Vec3.of(this.z, this.x, this.x);
+	extern inline function get_zxx()
+		return Vec3.of(a.z, a.x, a.x);
 
-	extern inline function get_zxy():Vec3
-		return Vec3.of(this.z, this.x, this.y);
+	extern inline function get_zxy()
+		return Vec3.of(a.z, a.x, a.y);
 
-	extern inline function get_zxz():Vec3
-		return Vec3.of(this.z, this.x, this.z);
+	extern inline function get_zxz()
+		return Vec3.of(a.z, a.x, a.z);
 
-	extern inline function get_zxw():Vec3
-		return Vec3.of(this.z, this.x, this.w);
+	extern inline function get_zxw()
+		return Vec3.of(a.z, a.x, a.w);
 
-	extern inline function get_zyx():Vec3
-		return Vec3.of(this.z, this.y, this.x);
+	extern inline function get_zyx()
+		return Vec3.of(a.z, a.y, a.x);
 
-	extern inline function get_zyy():Vec3
-		return Vec3.of(this.z, this.y, this.y);
+	extern inline function get_zyy()
+		return Vec3.of(a.z, a.y, a.y);
 
-	extern inline function get_zyz():Vec3
-		return Vec3.of(this.z, this.y, this.z);
+	extern inline function get_zyz()
+		return Vec3.of(a.z, a.y, a.z);
 
-	extern inline function get_zyw():Vec3
-		return Vec3.of(this.z, this.y, this.w);
+	extern inline function get_zyw()
+		return Vec3.of(a.z, a.y, a.w);
 
-	extern inline function get_zzx():Vec3
-		return Vec3.of(this.z, this.z, this.x);
+	extern inline function get_zzx()
+		return Vec3.of(a.z, a.z, a.x);
 
-	extern inline function get_zzy():Vec3
-		return Vec3.of(this.z, this.z, this.y);
+	extern inline function get_zzy()
+		return Vec3.of(a.z, a.z, a.y);
 
-	extern inline function get_zzz():Vec3
-		return Vec3.of(this.z, this.z, this.z);
+	extern inline function get_zzz()
+		return Vec3.of(a.z, a.z, a.z);
 
-	extern inline function get_zzw():Vec3
-		return Vec3.of(this.z, this.z, this.w);
+	extern inline function get_zzw()
+		return Vec3.of(a.z, a.z, a.w);
 
-	extern inline function get_zwx():Vec3
-		return Vec3.of(this.z, this.w, this.x);
+	extern inline function get_zwx()
+		return Vec3.of(a.z, a.w, a.x);
 
-	extern inline function get_zwy():Vec3
-		return Vec3.of(this.z, this.w, this.y);
+	extern inline function get_zwy()
+		return Vec3.of(a.z, a.w, a.y);
 
-	extern inline function get_zwz():Vec3
-		return Vec3.of(this.z, this.w, this.z);
+	extern inline function get_zwz()
+		return Vec3.of(a.z, a.w, a.z);
 
-	extern inline function get_zww():Vec3
-		return Vec3.of(this.z, this.w, this.w);
+	extern inline function get_zww()
+		return Vec3.of(a.z, a.w, a.w);
 
-	extern inline function get_wxx():Vec3
-		return Vec3.of(this.w, this.x, this.x);
+	extern inline function get_wxx()
+		return Vec3.of(a.w, a.x, a.x);
 
-	extern inline function get_wxy():Vec3
-		return Vec3.of(this.w, this.x, this.y);
+	extern inline function get_wxy()
+		return Vec3.of(a.w, a.x, a.y);
 
-	extern inline function get_wxz():Vec3
-		return Vec3.of(this.w, this.x, this.z);
+	extern inline function get_wxz()
+		return Vec3.of(a.w, a.x, a.z);
 
-	extern inline function get_wxw():Vec3
-		return Vec3.of(this.w, this.x, this.w);
+	extern inline function get_wxw()
+		return Vec3.of(a.w, a.x, a.w);
 
-	extern inline function get_wyx():Vec3
-		return Vec3.of(this.w, this.y, this.x);
+	extern inline function get_wyx()
+		return Vec3.of(a.w, a.y, a.x);
 
-	extern inline function get_wyy():Vec3
-		return Vec3.of(this.w, this.y, this.y);
+	extern inline function get_wyy()
+		return Vec3.of(a.w, a.y, a.y);
 
-	extern inline function get_wyz():Vec3
-		return Vec3.of(this.w, this.y, this.z);
+	extern inline function get_wyz()
+		return Vec3.of(a.w, a.y, a.z);
 
-	extern inline function get_wyw():Vec3
-		return Vec3.of(this.w, this.y, this.w);
+	extern inline function get_wyw()
+		return Vec3.of(a.w, a.y, a.w);
 
-	extern inline function get_wzx():Vec3
-		return Vec3.of(this.w, this.z, this.x);
+	extern inline function get_wzx()
+		return Vec3.of(a.w, a.z, a.x);
 
-	extern inline function get_wzy():Vec3
-		return Vec3.of(this.w, this.z, this.y);
+	extern inline function get_wzy()
+		return Vec3.of(a.w, a.z, a.y);
 
-	extern inline function get_wzz():Vec3
-		return Vec3.of(this.w, this.z, this.z);
+	extern inline function get_wzz()
+		return Vec3.of(a.w, a.z, a.z);
 
-	extern inline function get_wzw():Vec3
-		return Vec3.of(this.w, this.z, this.w);
+	extern inline function get_wzw()
+		return Vec3.of(a.w, a.z, a.w);
 
-	extern inline function get_wwx():Vec3
-		return Vec3.of(this.w, this.w, this.x);
+	extern inline function get_wwx()
+		return Vec3.of(a.w, a.w, a.x);
 
-	extern inline function get_wwy():Vec3
-		return Vec3.of(this.w, this.w, this.y);
+	extern inline function get_wwy()
+		return Vec3.of(a.w, a.w, a.y);
 
-	extern inline function get_wwz():Vec3
-		return Vec3.of(this.w, this.w, this.z);
+	extern inline function get_wwz()
+		return Vec3.of(a.w, a.w, a.z);
 
-	extern inline function get_www():Vec3
-		return Vec3.of(this.w, this.w, this.w);
+	extern inline function get_www()
+		return Vec3.of(a.w, a.w, a.w);
 
-	extern inline function get_xxxx():Vec4
-		return Vec4.of(this.x, this.x, this.x, this.x);
+	extern inline function get_xxxx()
+		return Vec4.of(a.x, a.x, a.x, a.x);
 
-	extern inline function get_xxxy():Vec4
-		return Vec4.of(this.x, this.x, this.x, this.y);
+	extern inline function get_xxxy()
+		return Vec4.of(a.x, a.x, a.x, a.y);
 
-	extern inline function get_xxxz():Vec4
-		return Vec4.of(this.x, this.x, this.x, this.z);
+	extern inline function get_xxxz()
+		return Vec4.of(a.x, a.x, a.x, a.z);
 
-	extern inline function get_xxxw():Vec4
-		return Vec4.of(this.x, this.x, this.x, this.w);
+	extern inline function get_xxxw()
+		return Vec4.of(a.x, a.x, a.x, a.w);
 
-	extern inline function get_xxyx():Vec4
-		return Vec4.of(this.x, this.x, this.y, this.x);
+	extern inline function get_xxyx()
+		return Vec4.of(a.x, a.x, a.y, a.x);
 
-	extern inline function get_xxyy():Vec4
-		return Vec4.of(this.x, this.x, this.y, this.y);
+	extern inline function get_xxyy()
+		return Vec4.of(a.x, a.x, a.y, a.y);
 
-	extern inline function get_xxyz():Vec4
-		return Vec4.of(this.x, this.x, this.y, this.z);
+	extern inline function get_xxyz()
+		return Vec4.of(a.x, a.x, a.y, a.z);
 
-	extern inline function get_xxyw():Vec4
-		return Vec4.of(this.x, this.x, this.y, this.w);
+	extern inline function get_xxyw()
+		return Vec4.of(a.x, a.x, a.y, a.w);
 
-	extern inline function get_xxzx():Vec4
-		return Vec4.of(this.x, this.x, this.z, this.x);
+	extern inline function get_xxzx()
+		return Vec4.of(a.x, a.x, a.z, a.x);
 
-	extern inline function get_xxzy():Vec4
-		return Vec4.of(this.x, this.x, this.z, this.y);
+	extern inline function get_xxzy()
+		return Vec4.of(a.x, a.x, a.z, a.y);
 
-	extern inline function get_xxzz():Vec4
-		return Vec4.of(this.x, this.x, this.z, this.z);
+	extern inline function get_xxzz()
+		return Vec4.of(a.x, a.x, a.z, a.z);
 
-	extern inline function get_xxzw():Vec4
-		return Vec4.of(this.x, this.x, this.z, this.w);
+	extern inline function get_xxzw()
+		return Vec4.of(a.x, a.x, a.z, a.w);
 
-	extern inline function get_xxwx():Vec4
-		return Vec4.of(this.x, this.x, this.w, this.x);
+	extern inline function get_xxwx()
+		return Vec4.of(a.x, a.x, a.w, a.x);
 
-	extern inline function get_xxwy():Vec4
-		return Vec4.of(this.x, this.x, this.w, this.y);
+	extern inline function get_xxwy()
+		return Vec4.of(a.x, a.x, a.w, a.y);
 
-	extern inline function get_xxwz():Vec4
-		return Vec4.of(this.x, this.x, this.w, this.z);
+	extern inline function get_xxwz()
+		return Vec4.of(a.x, a.x, a.w, a.z);
 
-	extern inline function get_xxww():Vec4
-		return Vec4.of(this.x, this.x, this.w, this.w);
+	extern inline function get_xxww()
+		return Vec4.of(a.x, a.x, a.w, a.w);
 
-	extern inline function get_xyxx():Vec4
-		return Vec4.of(this.x, this.y, this.x, this.x);
+	extern inline function get_xyxx()
+		return Vec4.of(a.x, a.y, a.x, a.x);
 
-	extern inline function get_xyxy():Vec4
-		return Vec4.of(this.x, this.y, this.x, this.y);
+	extern inline function get_xyxy()
+		return Vec4.of(a.x, a.y, a.x, a.y);
 
-	extern inline function get_xyxz():Vec4
-		return Vec4.of(this.x, this.y, this.x, this.z);
+	extern inline function get_xyxz()
+		return Vec4.of(a.x, a.y, a.x, a.z);
 
-	extern inline function get_xyxw():Vec4
-		return Vec4.of(this.x, this.y, this.x, this.w);
+	extern inline function get_xyxw()
+		return Vec4.of(a.x, a.y, a.x, a.w);
 
-	extern inline function get_xyyx():Vec4
-		return Vec4.of(this.x, this.y, this.y, this.x);
+	extern inline function get_xyyx()
+		return Vec4.of(a.x, a.y, a.y, a.x);
 
-	extern inline function get_xyyy():Vec4
-		return Vec4.of(this.x, this.y, this.y, this.y);
+	extern inline function get_xyyy()
+		return Vec4.of(a.x, a.y, a.y, a.y);
 
-	extern inline function get_xyyz():Vec4
-		return Vec4.of(this.x, this.y, this.y, this.z);
+	extern inline function get_xyyz()
+		return Vec4.of(a.x, a.y, a.y, a.z);
 
-	extern inline function get_xyyw():Vec4
-		return Vec4.of(this.x, this.y, this.y, this.w);
+	extern inline function get_xyyw()
+		return Vec4.of(a.x, a.y, a.y, a.w);
 
-	extern inline function get_xyzx():Vec4
-		return Vec4.of(this.x, this.y, this.z, this.x);
+	extern inline function get_xyzx()
+		return Vec4.of(a.x, a.y, a.z, a.x);
 
-	extern inline function get_xyzy():Vec4
-		return Vec4.of(this.x, this.y, this.z, this.y);
+	extern inline function get_xyzy()
+		return Vec4.of(a.x, a.y, a.z, a.y);
 
-	extern inline function get_xyzz():Vec4
-		return Vec4.of(this.x, this.y, this.z, this.z);
+	extern inline function get_xyzz()
+		return Vec4.of(a.x, a.y, a.z, a.z);
 
-	extern inline function get_xyzw():Vec4
-		return Vec4.of(this.x, this.y, this.z, this.w);
+	extern inline function get_xyzw()
+		return Vec4.of(a.x, a.y, a.z, a.w);
 
-	extern inline function get_xywx():Vec4
-		return Vec4.of(this.x, this.y, this.w, this.x);
+	extern inline function get_xywx()
+		return Vec4.of(a.x, a.y, a.w, a.x);
 
-	extern inline function get_xywy():Vec4
-		return Vec4.of(this.x, this.y, this.w, this.y);
+	extern inline function get_xywy()
+		return Vec4.of(a.x, a.y, a.w, a.y);
 
-	extern inline function get_xywz():Vec4
-		return Vec4.of(this.x, this.y, this.w, this.z);
+	extern inline function get_xywz()
+		return Vec4.of(a.x, a.y, a.w, a.z);
 
-	extern inline function get_xyww():Vec4
-		return Vec4.of(this.x, this.y, this.w, this.w);
+	extern inline function get_xyww()
+		return Vec4.of(a.x, a.y, a.w, a.w);
 
-	extern inline function get_xzxx():Vec4
-		return Vec4.of(this.x, this.z, this.x, this.x);
+	extern inline function get_xzxx()
+		return Vec4.of(a.x, a.z, a.x, a.x);
 
-	extern inline function get_xzxy():Vec4
-		return Vec4.of(this.x, this.z, this.x, this.y);
+	extern inline function get_xzxy()
+		return Vec4.of(a.x, a.z, a.x, a.y);
 
-	extern inline function get_xzxz():Vec4
-		return Vec4.of(this.x, this.z, this.x, this.z);
+	extern inline function get_xzxz()
+		return Vec4.of(a.x, a.z, a.x, a.z);
 
-	extern inline function get_xzxw():Vec4
-		return Vec4.of(this.x, this.z, this.x, this.w);
+	extern inline function get_xzxw()
+		return Vec4.of(a.x, a.z, a.x, a.w);
 
-	extern inline function get_xzyx():Vec4
-		return Vec4.of(this.x, this.z, this.y, this.x);
+	extern inline function get_xzyx()
+		return Vec4.of(a.x, a.z, a.y, a.x);
 
-	extern inline function get_xzyy():Vec4
-		return Vec4.of(this.x, this.z, this.y, this.y);
+	extern inline function get_xzyy()
+		return Vec4.of(a.x, a.z, a.y, a.y);
 
-	extern inline function get_xzyz():Vec4
-		return Vec4.of(this.x, this.z, this.y, this.z);
+	extern inline function get_xzyz()
+		return Vec4.of(a.x, a.z, a.y, a.z);
 
-	extern inline function get_xzyw():Vec4
-		return Vec4.of(this.x, this.z, this.y, this.w);
+	extern inline function get_xzyw()
+		return Vec4.of(a.x, a.z, a.y, a.w);
 
-	extern inline function get_xzzx():Vec4
-		return Vec4.of(this.x, this.z, this.z, this.x);
+	extern inline function get_xzzx()
+		return Vec4.of(a.x, a.z, a.z, a.x);
 
-	extern inline function get_xzzy():Vec4
-		return Vec4.of(this.x, this.z, this.z, this.y);
+	extern inline function get_xzzy()
+		return Vec4.of(a.x, a.z, a.z, a.y);
 
-	extern inline function get_xzzz():Vec4
-		return Vec4.of(this.x, this.z, this.z, this.z);
+	extern inline function get_xzzz()
+		return Vec4.of(a.x, a.z, a.z, a.z);
 
-	extern inline function get_xzzw():Vec4
-		return Vec4.of(this.x, this.z, this.z, this.w);
+	extern inline function get_xzzw()
+		return Vec4.of(a.x, a.z, a.z, a.w);
 
-	extern inline function get_xzwx():Vec4
-		return Vec4.of(this.x, this.z, this.w, this.x);
+	extern inline function get_xzwx()
+		return Vec4.of(a.x, a.z, a.w, a.x);
 
-	extern inline function get_xzwy():Vec4
-		return Vec4.of(this.x, this.z, this.w, this.y);
+	extern inline function get_xzwy()
+		return Vec4.of(a.x, a.z, a.w, a.y);
 
-	extern inline function get_xzwz():Vec4
-		return Vec4.of(this.x, this.z, this.w, this.z);
+	extern inline function get_xzwz()
+		return Vec4.of(a.x, a.z, a.w, a.z);
 
-	extern inline function get_xzww():Vec4
-		return Vec4.of(this.x, this.z, this.w, this.w);
+	extern inline function get_xzww()
+		return Vec4.of(a.x, a.z, a.w, a.w);
 
-	extern inline function get_xwxx():Vec4
-		return Vec4.of(this.x, this.w, this.x, this.x);
+	extern inline function get_xwxx()
+		return Vec4.of(a.x, a.w, a.x, a.x);
 
-	extern inline function get_xwxy():Vec4
-		return Vec4.of(this.x, this.w, this.x, this.y);
+	extern inline function get_xwxy()
+		return Vec4.of(a.x, a.w, a.x, a.y);
 
-	extern inline function get_xwxz():Vec4
-		return Vec4.of(this.x, this.w, this.x, this.z);
+	extern inline function get_xwxz()
+		return Vec4.of(a.x, a.w, a.x, a.z);
 
-	extern inline function get_xwxw():Vec4
-		return Vec4.of(this.x, this.w, this.x, this.w);
+	extern inline function get_xwxw()
+		return Vec4.of(a.x, a.w, a.x, a.w);
 
-	extern inline function get_xwyx():Vec4
-		return Vec4.of(this.x, this.w, this.y, this.x);
+	extern inline function get_xwyx()
+		return Vec4.of(a.x, a.w, a.y, a.x);
 
-	extern inline function get_xwyy():Vec4
-		return Vec4.of(this.x, this.w, this.y, this.y);
+	extern inline function get_xwyy()
+		return Vec4.of(a.x, a.w, a.y, a.y);
 
-	extern inline function get_xwyz():Vec4
-		return Vec4.of(this.x, this.w, this.y, this.z);
+	extern inline function get_xwyz()
+		return Vec4.of(a.x, a.w, a.y, a.z);
 
-	extern inline function get_xwyw():Vec4
-		return Vec4.of(this.x, this.w, this.y, this.w);
+	extern inline function get_xwyw()
+		return Vec4.of(a.x, a.w, a.y, a.w);
 
-	extern inline function get_xwzx():Vec4
-		return Vec4.of(this.x, this.w, this.z, this.x);
+	extern inline function get_xwzx()
+		return Vec4.of(a.x, a.w, a.z, a.x);
 
-	extern inline function get_xwzy():Vec4
-		return Vec4.of(this.x, this.w, this.z, this.y);
+	extern inline function get_xwzy()
+		return Vec4.of(a.x, a.w, a.z, a.y);
 
-	extern inline function get_xwzz():Vec4
-		return Vec4.of(this.x, this.w, this.z, this.z);
+	extern inline function get_xwzz()
+		return Vec4.of(a.x, a.w, a.z, a.z);
 
-	extern inline function get_xwzw():Vec4
-		return Vec4.of(this.x, this.w, this.z, this.w);
+	extern inline function get_xwzw()
+		return Vec4.of(a.x, a.w, a.z, a.w);
 
-	extern inline function get_xwwx():Vec4
-		return Vec4.of(this.x, this.w, this.w, this.x);
+	extern inline function get_xwwx()
+		return Vec4.of(a.x, a.w, a.w, a.x);
 
-	extern inline function get_xwwy():Vec4
-		return Vec4.of(this.x, this.w, this.w, this.y);
+	extern inline function get_xwwy()
+		return Vec4.of(a.x, a.w, a.w, a.y);
 
-	extern inline function get_xwwz():Vec4
-		return Vec4.of(this.x, this.w, this.w, this.z);
+	extern inline function get_xwwz()
+		return Vec4.of(a.x, a.w, a.w, a.z);
 
-	extern inline function get_xwww():Vec4
-		return Vec4.of(this.x, this.w, this.w, this.w);
+	extern inline function get_xwww()
+		return Vec4.of(a.x, a.w, a.w, a.w);
 
-	extern inline function get_yxxx():Vec4
-		return Vec4.of(this.y, this.x, this.x, this.x);
+	extern inline function get_yxxx()
+		return Vec4.of(a.y, a.x, a.x, a.x);
 
-	extern inline function get_yxxy():Vec4
-		return Vec4.of(this.y, this.x, this.x, this.y);
+	extern inline function get_yxxy()
+		return Vec4.of(a.y, a.x, a.x, a.y);
 
-	extern inline function get_yxxz():Vec4
-		return Vec4.of(this.y, this.x, this.x, this.z);
+	extern inline function get_yxxz()
+		return Vec4.of(a.y, a.x, a.x, a.z);
 
-	extern inline function get_yxxw():Vec4
-		return Vec4.of(this.y, this.x, this.x, this.w);
+	extern inline function get_yxxw()
+		return Vec4.of(a.y, a.x, a.x, a.w);
 
-	extern inline function get_yxyx():Vec4
-		return Vec4.of(this.y, this.x, this.y, this.x);
+	extern inline function get_yxyx()
+		return Vec4.of(a.y, a.x, a.y, a.x);
 
-	extern inline function get_yxyy():Vec4
-		return Vec4.of(this.y, this.x, this.y, this.y);
+	extern inline function get_yxyy()
+		return Vec4.of(a.y, a.x, a.y, a.y);
 
-	extern inline function get_yxyz():Vec4
-		return Vec4.of(this.y, this.x, this.y, this.z);
+	extern inline function get_yxyz()
+		return Vec4.of(a.y, a.x, a.y, a.z);
 
-	extern inline function get_yxyw():Vec4
-		return Vec4.of(this.y, this.x, this.y, this.w);
+	extern inline function get_yxyw()
+		return Vec4.of(a.y, a.x, a.y, a.w);
 
-	extern inline function get_yxzx():Vec4
-		return Vec4.of(this.y, this.x, this.z, this.x);
+	extern inline function get_yxzx()
+		return Vec4.of(a.y, a.x, a.z, a.x);
 
-	extern inline function get_yxzy():Vec4
-		return Vec4.of(this.y, this.x, this.z, this.y);
+	extern inline function get_yxzy()
+		return Vec4.of(a.y, a.x, a.z, a.y);
 
-	extern inline function get_yxzz():Vec4
-		return Vec4.of(this.y, this.x, this.z, this.z);
+	extern inline function get_yxzz()
+		return Vec4.of(a.y, a.x, a.z, a.z);
 
-	extern inline function get_yxzw():Vec4
-		return Vec4.of(this.y, this.x, this.z, this.w);
+	extern inline function get_yxzw()
+		return Vec4.of(a.y, a.x, a.z, a.w);
 
-	extern inline function get_yxwx():Vec4
-		return Vec4.of(this.y, this.x, this.w, this.x);
+	extern inline function get_yxwx()
+		return Vec4.of(a.y, a.x, a.w, a.x);
 
-	extern inline function get_yxwy():Vec4
-		return Vec4.of(this.y, this.x, this.w, this.y);
+	extern inline function get_yxwy()
+		return Vec4.of(a.y, a.x, a.w, a.y);
 
-	extern inline function get_yxwz():Vec4
-		return Vec4.of(this.y, this.x, this.w, this.z);
+	extern inline function get_yxwz()
+		return Vec4.of(a.y, a.x, a.w, a.z);
 
-	extern inline function get_yxww():Vec4
-		return Vec4.of(this.y, this.x, this.w, this.w);
+	extern inline function get_yxww()
+		return Vec4.of(a.y, a.x, a.w, a.w);
 
-	extern inline function get_yyxx():Vec4
-		return Vec4.of(this.y, this.y, this.x, this.x);
+	extern inline function get_yyxx()
+		return Vec4.of(a.y, a.y, a.x, a.x);
 
-	extern inline function get_yyxy():Vec4
-		return Vec4.of(this.y, this.y, this.x, this.y);
+	extern inline function get_yyxy()
+		return Vec4.of(a.y, a.y, a.x, a.y);
 
-	extern inline function get_yyxz():Vec4
-		return Vec4.of(this.y, this.y, this.x, this.z);
+	extern inline function get_yyxz()
+		return Vec4.of(a.y, a.y, a.x, a.z);
 
-	extern inline function get_yyxw():Vec4
-		return Vec4.of(this.y, this.y, this.x, this.w);
+	extern inline function get_yyxw()
+		return Vec4.of(a.y, a.y, a.x, a.w);
 
-	extern inline function get_yyyx():Vec4
-		return Vec4.of(this.y, this.y, this.y, this.x);
+	extern inline function get_yyyx()
+		return Vec4.of(a.y, a.y, a.y, a.x);
 
-	extern inline function get_yyyy():Vec4
-		return Vec4.of(this.y, this.y, this.y, this.y);
+	extern inline function get_yyyy()
+		return Vec4.of(a.y, a.y, a.y, a.y);
 
-	extern inline function get_yyyz():Vec4
-		return Vec4.of(this.y, this.y, this.y, this.z);
+	extern inline function get_yyyz()
+		return Vec4.of(a.y, a.y, a.y, a.z);
 
-	extern inline function get_yyyw():Vec4
-		return Vec4.of(this.y, this.y, this.y, this.w);
+	extern inline function get_yyyw()
+		return Vec4.of(a.y, a.y, a.y, a.w);
 
-	extern inline function get_yyzx():Vec4
-		return Vec4.of(this.y, this.y, this.z, this.x);
+	extern inline function get_yyzx()
+		return Vec4.of(a.y, a.y, a.z, a.x);
 
-	extern inline function get_yyzy():Vec4
-		return Vec4.of(this.y, this.y, this.z, this.y);
+	extern inline function get_yyzy()
+		return Vec4.of(a.y, a.y, a.z, a.y);
 
-	extern inline function get_yyzz():Vec4
-		return Vec4.of(this.y, this.y, this.z, this.z);
+	extern inline function get_yyzz()
+		return Vec4.of(a.y, a.y, a.z, a.z);
 
-	extern inline function get_yyzw():Vec4
-		return Vec4.of(this.y, this.y, this.z, this.w);
+	extern inline function get_yyzw()
+		return Vec4.of(a.y, a.y, a.z, a.w);
 
-	extern inline function get_yywx():Vec4
-		return Vec4.of(this.y, this.y, this.w, this.x);
+	extern inline function get_yywx()
+		return Vec4.of(a.y, a.y, a.w, a.x);
 
-	extern inline function get_yywy():Vec4
-		return Vec4.of(this.y, this.y, this.w, this.y);
+	extern inline function get_yywy()
+		return Vec4.of(a.y, a.y, a.w, a.y);
 
-	extern inline function get_yywz():Vec4
-		return Vec4.of(this.y, this.y, this.w, this.z);
+	extern inline function get_yywz()
+		return Vec4.of(a.y, a.y, a.w, a.z);
 
-	extern inline function get_yyww():Vec4
-		return Vec4.of(this.y, this.y, this.w, this.w);
+	extern inline function get_yyww()
+		return Vec4.of(a.y, a.y, a.w, a.w);
 
-	extern inline function get_yzxx():Vec4
-		return Vec4.of(this.y, this.z, this.x, this.x);
+	extern inline function get_yzxx()
+		return Vec4.of(a.y, a.z, a.x, a.x);
 
-	extern inline function get_yzxy():Vec4
-		return Vec4.of(this.y, this.z, this.x, this.y);
+	extern inline function get_yzxy()
+		return Vec4.of(a.y, a.z, a.x, a.y);
 
-	extern inline function get_yzxz():Vec4
-		return Vec4.of(this.y, this.z, this.x, this.z);
+	extern inline function get_yzxz()
+		return Vec4.of(a.y, a.z, a.x, a.z);
 
-	extern inline function get_yzxw():Vec4
-		return Vec4.of(this.y, this.z, this.x, this.w);
+	extern inline function get_yzxw()
+		return Vec4.of(a.y, a.z, a.x, a.w);
 
-	extern inline function get_yzyx():Vec4
-		return Vec4.of(this.y, this.z, this.y, this.x);
+	extern inline function get_yzyx()
+		return Vec4.of(a.y, a.z, a.y, a.x);
 
-	extern inline function get_yzyy():Vec4
-		return Vec4.of(this.y, this.z, this.y, this.y);
+	extern inline function get_yzyy()
+		return Vec4.of(a.y, a.z, a.y, a.y);
 
-	extern inline function get_yzyz():Vec4
-		return Vec4.of(this.y, this.z, this.y, this.z);
+	extern inline function get_yzyz()
+		return Vec4.of(a.y, a.z, a.y, a.z);
 
-	extern inline function get_yzyw():Vec4
-		return Vec4.of(this.y, this.z, this.y, this.w);
+	extern inline function get_yzyw()
+		return Vec4.of(a.y, a.z, a.y, a.w);
 
-	extern inline function get_yzzx():Vec4
-		return Vec4.of(this.y, this.z, this.z, this.x);
+	extern inline function get_yzzx()
+		return Vec4.of(a.y, a.z, a.z, a.x);
 
-	extern inline function get_yzzy():Vec4
-		return Vec4.of(this.y, this.z, this.z, this.y);
+	extern inline function get_yzzy()
+		return Vec4.of(a.y, a.z, a.z, a.y);
 
-	extern inline function get_yzzz():Vec4
-		return Vec4.of(this.y, this.z, this.z, this.z);
+	extern inline function get_yzzz()
+		return Vec4.of(a.y, a.z, a.z, a.z);
 
-	extern inline function get_yzzw():Vec4
-		return Vec4.of(this.y, this.z, this.z, this.w);
+	extern inline function get_yzzw()
+		return Vec4.of(a.y, a.z, a.z, a.w);
 
-	extern inline function get_yzwx():Vec4
-		return Vec4.of(this.y, this.z, this.w, this.x);
+	extern inline function get_yzwx()
+		return Vec4.of(a.y, a.z, a.w, a.x);
 
-	extern inline function get_yzwy():Vec4
-		return Vec4.of(this.y, this.z, this.w, this.y);
+	extern inline function get_yzwy()
+		return Vec4.of(a.y, a.z, a.w, a.y);
 
-	extern inline function get_yzwz():Vec4
-		return Vec4.of(this.y, this.z, this.w, this.z);
+	extern inline function get_yzwz()
+		return Vec4.of(a.y, a.z, a.w, a.z);
 
-	extern inline function get_yzww():Vec4
-		return Vec4.of(this.y, this.z, this.w, this.w);
+	extern inline function get_yzww()
+		return Vec4.of(a.y, a.z, a.w, a.w);
 
-	extern inline function get_ywxx():Vec4
-		return Vec4.of(this.y, this.w, this.x, this.x);
+	extern inline function get_ywxx()
+		return Vec4.of(a.y, a.w, a.x, a.x);
 
-	extern inline function get_ywxy():Vec4
-		return Vec4.of(this.y, this.w, this.x, this.y);
+	extern inline function get_ywxy()
+		return Vec4.of(a.y, a.w, a.x, a.y);
 
-	extern inline function get_ywxz():Vec4
-		return Vec4.of(this.y, this.w, this.x, this.z);
+	extern inline function get_ywxz()
+		return Vec4.of(a.y, a.w, a.x, a.z);
 
-	extern inline function get_ywxw():Vec4
-		return Vec4.of(this.y, this.w, this.x, this.w);
+	extern inline function get_ywxw()
+		return Vec4.of(a.y, a.w, a.x, a.w);
 
-	extern inline function get_ywyx():Vec4
-		return Vec4.of(this.y, this.w, this.y, this.x);
+	extern inline function get_ywyx()
+		return Vec4.of(a.y, a.w, a.y, a.x);
 
-	extern inline function get_ywyy():Vec4
-		return Vec4.of(this.y, this.w, this.y, this.y);
+	extern inline function get_ywyy()
+		return Vec4.of(a.y, a.w, a.y, a.y);
 
-	extern inline function get_ywyz():Vec4
-		return Vec4.of(this.y, this.w, this.y, this.z);
+	extern inline function get_ywyz()
+		return Vec4.of(a.y, a.w, a.y, a.z);
 
-	extern inline function get_ywyw():Vec4
-		return Vec4.of(this.y, this.w, this.y, this.w);
+	extern inline function get_ywyw()
+		return Vec4.of(a.y, a.w, a.y, a.w);
 
-	extern inline function get_ywzx():Vec4
-		return Vec4.of(this.y, this.w, this.z, this.x);
+	extern inline function get_ywzx()
+		return Vec4.of(a.y, a.w, a.z, a.x);
 
-	extern inline function get_ywzy():Vec4
-		return Vec4.of(this.y, this.w, this.z, this.y);
+	extern inline function get_ywzy()
+		return Vec4.of(a.y, a.w, a.z, a.y);
 
-	extern inline function get_ywzz():Vec4
-		return Vec4.of(this.y, this.w, this.z, this.z);
+	extern inline function get_ywzz()
+		return Vec4.of(a.y, a.w, a.z, a.z);
 
-	extern inline function get_ywzw():Vec4
-		return Vec4.of(this.y, this.w, this.z, this.w);
+	extern inline function get_ywzw()
+		return Vec4.of(a.y, a.w, a.z, a.w);
 
-	extern inline function get_ywwx():Vec4
-		return Vec4.of(this.y, this.w, this.w, this.x);
+	extern inline function get_ywwx()
+		return Vec4.of(a.y, a.w, a.w, a.x);
 
-	extern inline function get_ywwy():Vec4
-		return Vec4.of(this.y, this.w, this.w, this.y);
+	extern inline function get_ywwy()
+		return Vec4.of(a.y, a.w, a.w, a.y);
 
-	extern inline function get_ywwz():Vec4
-		return Vec4.of(this.y, this.w, this.w, this.z);
+	extern inline function get_ywwz()
+		return Vec4.of(a.y, a.w, a.w, a.z);
 
-	extern inline function get_ywww():Vec4
-		return Vec4.of(this.y, this.w, this.w, this.w);
+	extern inline function get_ywww()
+		return Vec4.of(a.y, a.w, a.w, a.w);
 
-	extern inline function get_zxxx():Vec4
-		return Vec4.of(this.z, this.x, this.x, this.x);
+	extern inline function get_zxxx()
+		return Vec4.of(a.z, a.x, a.x, a.x);
 
-	extern inline function get_zxxy():Vec4
-		return Vec4.of(this.z, this.x, this.x, this.y);
+	extern inline function get_zxxy()
+		return Vec4.of(a.z, a.x, a.x, a.y);
 
-	extern inline function get_zxxz():Vec4
-		return Vec4.of(this.z, this.x, this.x, this.z);
+	extern inline function get_zxxz()
+		return Vec4.of(a.z, a.x, a.x, a.z);
 
-	extern inline function get_zxxw():Vec4
-		return Vec4.of(this.z, this.x, this.x, this.w);
+	extern inline function get_zxxw()
+		return Vec4.of(a.z, a.x, a.x, a.w);
 
-	extern inline function get_zxyx():Vec4
-		return Vec4.of(this.z, this.x, this.y, this.x);
+	extern inline function get_zxyx()
+		return Vec4.of(a.z, a.x, a.y, a.x);
 
-	extern inline function get_zxyy():Vec4
-		return Vec4.of(this.z, this.x, this.y, this.y);
+	extern inline function get_zxyy()
+		return Vec4.of(a.z, a.x, a.y, a.y);
 
-	extern inline function get_zxyz():Vec4
-		return Vec4.of(this.z, this.x, this.y, this.z);
+	extern inline function get_zxyz()
+		return Vec4.of(a.z, a.x, a.y, a.z);
 
-	extern inline function get_zxyw():Vec4
-		return Vec4.of(this.z, this.x, this.y, this.w);
+	extern inline function get_zxyw()
+		return Vec4.of(a.z, a.x, a.y, a.w);
 
-	extern inline function get_zxzx():Vec4
-		return Vec4.of(this.z, this.x, this.z, this.x);
+	extern inline function get_zxzx()
+		return Vec4.of(a.z, a.x, a.z, a.x);
 
-	extern inline function get_zxzy():Vec4
-		return Vec4.of(this.z, this.x, this.z, this.y);
+	extern inline function get_zxzy()
+		return Vec4.of(a.z, a.x, a.z, a.y);
 
-	extern inline function get_zxzz():Vec4
-		return Vec4.of(this.z, this.x, this.z, this.z);
+	extern inline function get_zxzz()
+		return Vec4.of(a.z, a.x, a.z, a.z);
 
-	extern inline function get_zxzw():Vec4
-		return Vec4.of(this.z, this.x, this.z, this.w);
+	extern inline function get_zxzw()
+		return Vec4.of(a.z, a.x, a.z, a.w);
 
-	extern inline function get_zxwx():Vec4
-		return Vec4.of(this.z, this.x, this.w, this.x);
+	extern inline function get_zxwx()
+		return Vec4.of(a.z, a.x, a.w, a.x);
 
-	extern inline function get_zxwy():Vec4
-		return Vec4.of(this.z, this.x, this.w, this.y);
+	extern inline function get_zxwy()
+		return Vec4.of(a.z, a.x, a.w, a.y);
 
-	extern inline function get_zxwz():Vec4
-		return Vec4.of(this.z, this.x, this.w, this.z);
+	extern inline function get_zxwz()
+		return Vec4.of(a.z, a.x, a.w, a.z);
 
-	extern inline function get_zxww():Vec4
-		return Vec4.of(this.z, this.x, this.w, this.w);
+	extern inline function get_zxww()
+		return Vec4.of(a.z, a.x, a.w, a.w);
 
-	extern inline function get_zyxx():Vec4
-		return Vec4.of(this.z, this.y, this.x, this.x);
+	extern inline function get_zyxx()
+		return Vec4.of(a.z, a.y, a.x, a.x);
 
-	extern inline function get_zyxy():Vec4
-		return Vec4.of(this.z, this.y, this.x, this.y);
+	extern inline function get_zyxy()
+		return Vec4.of(a.z, a.y, a.x, a.y);
 
-	extern inline function get_zyxz():Vec4
-		return Vec4.of(this.z, this.y, this.x, this.z);
+	extern inline function get_zyxz()
+		return Vec4.of(a.z, a.y, a.x, a.z);
 
-	extern inline function get_zyxw():Vec4
-		return Vec4.of(this.z, this.y, this.x, this.w);
+	extern inline function get_zyxw()
+		return Vec4.of(a.z, a.y, a.x, a.w);
 
-	extern inline function get_zyyx():Vec4
-		return Vec4.of(this.z, this.y, this.y, this.x);
+	extern inline function get_zyyx()
+		return Vec4.of(a.z, a.y, a.y, a.x);
 
-	extern inline function get_zyyy():Vec4
-		return Vec4.of(this.z, this.y, this.y, this.y);
+	extern inline function get_zyyy()
+		return Vec4.of(a.z, a.y, a.y, a.y);
 
-	extern inline function get_zyyz():Vec4
-		return Vec4.of(this.z, this.y, this.y, this.z);
+	extern inline function get_zyyz()
+		return Vec4.of(a.z, a.y, a.y, a.z);
 
-	extern inline function get_zyyw():Vec4
-		return Vec4.of(this.z, this.y, this.y, this.w);
+	extern inline function get_zyyw()
+		return Vec4.of(a.z, a.y, a.y, a.w);
 
-	extern inline function get_zyzx():Vec4
-		return Vec4.of(this.z, this.y, this.z, this.x);
+	extern inline function get_zyzx()
+		return Vec4.of(a.z, a.y, a.z, a.x);
 
-	extern inline function get_zyzy():Vec4
-		return Vec4.of(this.z, this.y, this.z, this.y);
+	extern inline function get_zyzy()
+		return Vec4.of(a.z, a.y, a.z, a.y);
 
-	extern inline function get_zyzz():Vec4
-		return Vec4.of(this.z, this.y, this.z, this.z);
+	extern inline function get_zyzz()
+		return Vec4.of(a.z, a.y, a.z, a.z);
 
-	extern inline function get_zyzw():Vec4
-		return Vec4.of(this.z, this.y, this.z, this.w);
+	extern inline function get_zyzw()
+		return Vec4.of(a.z, a.y, a.z, a.w);
 
-	extern inline function get_zywx():Vec4
-		return Vec4.of(this.z, this.y, this.w, this.x);
+	extern inline function get_zywx()
+		return Vec4.of(a.z, a.y, a.w, a.x);
 
-	extern inline function get_zywy():Vec4
-		return Vec4.of(this.z, this.y, this.w, this.y);
+	extern inline function get_zywy()
+		return Vec4.of(a.z, a.y, a.w, a.y);
 
-	extern inline function get_zywz():Vec4
-		return Vec4.of(this.z, this.y, this.w, this.z);
+	extern inline function get_zywz()
+		return Vec4.of(a.z, a.y, a.w, a.z);
 
-	extern inline function get_zyww():Vec4
-		return Vec4.of(this.z, this.y, this.w, this.w);
+	extern inline function get_zyww()
+		return Vec4.of(a.z, a.y, a.w, a.w);
 
-	extern inline function get_zzxx():Vec4
-		return Vec4.of(this.z, this.z, this.x, this.x);
+	extern inline function get_zzxx()
+		return Vec4.of(a.z, a.z, a.x, a.x);
 
-	extern inline function get_zzxy():Vec4
-		return Vec4.of(this.z, this.z, this.x, this.y);
+	extern inline function get_zzxy()
+		return Vec4.of(a.z, a.z, a.x, a.y);
 
-	extern inline function get_zzxz():Vec4
-		return Vec4.of(this.z, this.z, this.x, this.z);
+	extern inline function get_zzxz()
+		return Vec4.of(a.z, a.z, a.x, a.z);
 
-	extern inline function get_zzxw():Vec4
-		return Vec4.of(this.z, this.z, this.x, this.w);
+	extern inline function get_zzxw()
+		return Vec4.of(a.z, a.z, a.x, a.w);
 
-	extern inline function get_zzyx():Vec4
-		return Vec4.of(this.z, this.z, this.y, this.x);
+	extern inline function get_zzyx()
+		return Vec4.of(a.z, a.z, a.y, a.x);
 
-	extern inline function get_zzyy():Vec4
-		return Vec4.of(this.z, this.z, this.y, this.y);
+	extern inline function get_zzyy()
+		return Vec4.of(a.z, a.z, a.y, a.y);
 
-	extern inline function get_zzyz():Vec4
-		return Vec4.of(this.z, this.z, this.y, this.z);
+	extern inline function get_zzyz()
+		return Vec4.of(a.z, a.z, a.y, a.z);
 
-	extern inline function get_zzyw():Vec4
-		return Vec4.of(this.z, this.z, this.y, this.w);
+	extern inline function get_zzyw()
+		return Vec4.of(a.z, a.z, a.y, a.w);
 
-	extern inline function get_zzzx():Vec4
-		return Vec4.of(this.z, this.z, this.z, this.x);
+	extern inline function get_zzzx()
+		return Vec4.of(a.z, a.z, a.z, a.x);
 
-	extern inline function get_zzzy():Vec4
-		return Vec4.of(this.z, this.z, this.z, this.y);
+	extern inline function get_zzzy()
+		return Vec4.of(a.z, a.z, a.z, a.y);
 
-	extern inline function get_zzzz():Vec4
-		return Vec4.of(this.z, this.z, this.z, this.z);
+	extern inline function get_zzzz()
+		return Vec4.of(a.z, a.z, a.z, a.z);
 
-	extern inline function get_zzzw():Vec4
-		return Vec4.of(this.z, this.z, this.z, this.w);
+	extern inline function get_zzzw()
+		return Vec4.of(a.z, a.z, a.z, a.w);
 
-	extern inline function get_zzwx():Vec4
-		return Vec4.of(this.z, this.z, this.w, this.x);
+	extern inline function get_zzwx()
+		return Vec4.of(a.z, a.z, a.w, a.x);
 
-	extern inline function get_zzwy():Vec4
-		return Vec4.of(this.z, this.z, this.w, this.y);
+	extern inline function get_zzwy()
+		return Vec4.of(a.z, a.z, a.w, a.y);
 
-	extern inline function get_zzwz():Vec4
-		return Vec4.of(this.z, this.z, this.w, this.z);
+	extern inline function get_zzwz()
+		return Vec4.of(a.z, a.z, a.w, a.z);
 
-	extern inline function get_zzww():Vec4
-		return Vec4.of(this.z, this.z, this.w, this.w);
+	extern inline function get_zzww()
+		return Vec4.of(a.z, a.z, a.w, a.w);
 
-	extern inline function get_zwxx():Vec4
-		return Vec4.of(this.z, this.w, this.x, this.x);
+	extern inline function get_zwxx()
+		return Vec4.of(a.z, a.w, a.x, a.x);
 
-	extern inline function get_zwxy():Vec4
-		return Vec4.of(this.z, this.w, this.x, this.y);
+	extern inline function get_zwxy()
+		return Vec4.of(a.z, a.w, a.x, a.y);
 
-	extern inline function get_zwxz():Vec4
-		return Vec4.of(this.z, this.w, this.x, this.z);
+	extern inline function get_zwxz()
+		return Vec4.of(a.z, a.w, a.x, a.z);
 
-	extern inline function get_zwxw():Vec4
-		return Vec4.of(this.z, this.w, this.x, this.w);
+	extern inline function get_zwxw()
+		return Vec4.of(a.z, a.w, a.x, a.w);
 
-	extern inline function get_zwyx():Vec4
-		return Vec4.of(this.z, this.w, this.y, this.x);
+	extern inline function get_zwyx()
+		return Vec4.of(a.z, a.w, a.y, a.x);
 
-	extern inline function get_zwyy():Vec4
-		return Vec4.of(this.z, this.w, this.y, this.y);
+	extern inline function get_zwyy()
+		return Vec4.of(a.z, a.w, a.y, a.y);
 
-	extern inline function get_zwyz():Vec4
-		return Vec4.of(this.z, this.w, this.y, this.z);
+	extern inline function get_zwyz()
+		return Vec4.of(a.z, a.w, a.y, a.z);
 
-	extern inline function get_zwyw():Vec4
-		return Vec4.of(this.z, this.w, this.y, this.w);
+	extern inline function get_zwyw()
+		return Vec4.of(a.z, a.w, a.y, a.w);
 
-	extern inline function get_zwzx():Vec4
-		return Vec4.of(this.z, this.w, this.z, this.x);
+	extern inline function get_zwzx()
+		return Vec4.of(a.z, a.w, a.z, a.x);
 
-	extern inline function get_zwzy():Vec4
-		return Vec4.of(this.z, this.w, this.z, this.y);
+	extern inline function get_zwzy()
+		return Vec4.of(a.z, a.w, a.z, a.y);
 
-	extern inline function get_zwzz():Vec4
-		return Vec4.of(this.z, this.w, this.z, this.z);
+	extern inline function get_zwzz()
+		return Vec4.of(a.z, a.w, a.z, a.z);
 
-	extern inline function get_zwzw():Vec4
-		return Vec4.of(this.z, this.w, this.z, this.w);
+	extern inline function get_zwzw()
+		return Vec4.of(a.z, a.w, a.z, a.w);
 
-	extern inline function get_zwwx():Vec4
-		return Vec4.of(this.z, this.w, this.w, this.x);
+	extern inline function get_zwwx()
+		return Vec4.of(a.z, a.w, a.w, a.x);
 
-	extern inline function get_zwwy():Vec4
-		return Vec4.of(this.z, this.w, this.w, this.y);
+	extern inline function get_zwwy()
+		return Vec4.of(a.z, a.w, a.w, a.y);
 
-	extern inline function get_zwwz():Vec4
-		return Vec4.of(this.z, this.w, this.w, this.z);
+	extern inline function get_zwwz()
+		return Vec4.of(a.z, a.w, a.w, a.z);
 
-	extern inline function get_zwww():Vec4
-		return Vec4.of(this.z, this.w, this.w, this.w);
+	extern inline function get_zwww()
+		return Vec4.of(a.z, a.w, a.w, a.w);
 
-	extern inline function get_wxxx():Vec4
-		return Vec4.of(this.w, this.x, this.x, this.x);
+	extern inline function get_wxxx()
+		return Vec4.of(a.w, a.x, a.x, a.x);
 
-	extern inline function get_wxxy():Vec4
-		return Vec4.of(this.w, this.x, this.x, this.y);
+	extern inline function get_wxxy()
+		return Vec4.of(a.w, a.x, a.x, a.y);
 
-	extern inline function get_wxxz():Vec4
-		return Vec4.of(this.w, this.x, this.x, this.z);
+	extern inline function get_wxxz()
+		return Vec4.of(a.w, a.x, a.x, a.z);
 
-	extern inline function get_wxxw():Vec4
-		return Vec4.of(this.w, this.x, this.x, this.w);
+	extern inline function get_wxxw()
+		return Vec4.of(a.w, a.x, a.x, a.w);
 
-	extern inline function get_wxyx():Vec4
-		return Vec4.of(this.w, this.x, this.y, this.x);
+	extern inline function get_wxyx()
+		return Vec4.of(a.w, a.x, a.y, a.x);
 
-	extern inline function get_wxyy():Vec4
-		return Vec4.of(this.w, this.x, this.y, this.y);
+	extern inline function get_wxyy()
+		return Vec4.of(a.w, a.x, a.y, a.y);
 
-	extern inline function get_wxyz():Vec4
-		return Vec4.of(this.w, this.x, this.y, this.z);
+	extern inline function get_wxyz()
+		return Vec4.of(a.w, a.x, a.y, a.z);
 
-	extern inline function get_wxyw():Vec4
-		return Vec4.of(this.w, this.x, this.y, this.w);
+	extern inline function get_wxyw()
+		return Vec4.of(a.w, a.x, a.y, a.w);
 
-	extern inline function get_wxzx():Vec4
-		return Vec4.of(this.w, this.x, this.z, this.x);
+	extern inline function get_wxzx()
+		return Vec4.of(a.w, a.x, a.z, a.x);
 
-	extern inline function get_wxzy():Vec4
-		return Vec4.of(this.w, this.x, this.z, this.y);
+	extern inline function get_wxzy()
+		return Vec4.of(a.w, a.x, a.z, a.y);
 
-	extern inline function get_wxzz():Vec4
-		return Vec4.of(this.w, this.x, this.z, this.z);
+	extern inline function get_wxzz()
+		return Vec4.of(a.w, a.x, a.z, a.z);
 
-	extern inline function get_wxzw():Vec4
-		return Vec4.of(this.w, this.x, this.z, this.w);
+	extern inline function get_wxzw()
+		return Vec4.of(a.w, a.x, a.z, a.w);
 
-	extern inline function get_wxwx():Vec4
-		return Vec4.of(this.w, this.x, this.w, this.x);
+	extern inline function get_wxwx()
+		return Vec4.of(a.w, a.x, a.w, a.x);
 
-	extern inline function get_wxwy():Vec4
-		return Vec4.of(this.w, this.x, this.w, this.y);
+	extern inline function get_wxwy()
+		return Vec4.of(a.w, a.x, a.w, a.y);
 
-	extern inline function get_wxwz():Vec4
-		return Vec4.of(this.w, this.x, this.w, this.z);
+	extern inline function get_wxwz()
+		return Vec4.of(a.w, a.x, a.w, a.z);
 
-	extern inline function get_wxww():Vec4
-		return Vec4.of(this.w, this.x, this.w, this.w);
+	extern inline function get_wxww()
+		return Vec4.of(a.w, a.x, a.w, a.w);
 
-	extern inline function get_wyxx():Vec4
-		return Vec4.of(this.w, this.y, this.x, this.x);
+	extern inline function get_wyxx()
+		return Vec4.of(a.w, a.y, a.x, a.x);
 
-	extern inline function get_wyxy():Vec4
-		return Vec4.of(this.w, this.y, this.x, this.y);
+	extern inline function get_wyxy()
+		return Vec4.of(a.w, a.y, a.x, a.y);
 
-	extern inline function get_wyxz():Vec4
-		return Vec4.of(this.w, this.y, this.x, this.z);
+	extern inline function get_wyxz()
+		return Vec4.of(a.w, a.y, a.x, a.z);
 
-	extern inline function get_wyxw():Vec4
-		return Vec4.of(this.w, this.y, this.x, this.w);
+	extern inline function get_wyxw()
+		return Vec4.of(a.w, a.y, a.x, a.w);
 
-	extern inline function get_wyyx():Vec4
-		return Vec4.of(this.w, this.y, this.y, this.x);
+	extern inline function get_wyyx()
+		return Vec4.of(a.w, a.y, a.y, a.x);
 
-	extern inline function get_wyyy():Vec4
-		return Vec4.of(this.w, this.y, this.y, this.y);
+	extern inline function get_wyyy()
+		return Vec4.of(a.w, a.y, a.y, a.y);
 
-	extern inline function get_wyyz():Vec4
-		return Vec4.of(this.w, this.y, this.y, this.z);
+	extern inline function get_wyyz()
+		return Vec4.of(a.w, a.y, a.y, a.z);
 
-	extern inline function get_wyyw():Vec4
-		return Vec4.of(this.w, this.y, this.y, this.w);
+	extern inline function get_wyyw()
+		return Vec4.of(a.w, a.y, a.y, a.w);
 
-	extern inline function get_wyzx():Vec4
-		return Vec4.of(this.w, this.y, this.z, this.x);
+	extern inline function get_wyzx()
+		return Vec4.of(a.w, a.y, a.z, a.x);
 
-	extern inline function get_wyzy():Vec4
-		return Vec4.of(this.w, this.y, this.z, this.y);
+	extern inline function get_wyzy()
+		return Vec4.of(a.w, a.y, a.z, a.y);
 
-	extern inline function get_wyzz():Vec4
-		return Vec4.of(this.w, this.y, this.z, this.z);
+	extern inline function get_wyzz()
+		return Vec4.of(a.w, a.y, a.z, a.z);
 
-	extern inline function get_wyzw():Vec4
-		return Vec4.of(this.w, this.y, this.z, this.w);
+	extern inline function get_wyzw()
+		return Vec4.of(a.w, a.y, a.z, a.w);
 
-	extern inline function get_wywx():Vec4
-		return Vec4.of(this.w, this.y, this.w, this.x);
+	extern inline function get_wywx()
+		return Vec4.of(a.w, a.y, a.w, a.x);
 
-	extern inline function get_wywy():Vec4
-		return Vec4.of(this.w, this.y, this.w, this.y);
+	extern inline function get_wywy()
+		return Vec4.of(a.w, a.y, a.w, a.y);
 
-	extern inline function get_wywz():Vec4
-		return Vec4.of(this.w, this.y, this.w, this.z);
+	extern inline function get_wywz()
+		return Vec4.of(a.w, a.y, a.w, a.z);
 
-	extern inline function get_wyww():Vec4
-		return Vec4.of(this.w, this.y, this.w, this.w);
+	extern inline function get_wyww()
+		return Vec4.of(a.w, a.y, a.w, a.w);
 
-	extern inline function get_wzxx():Vec4
-		return Vec4.of(this.w, this.z, this.x, this.x);
+	extern inline function get_wzxx()
+		return Vec4.of(a.w, a.z, a.x, a.x);
 
-	extern inline function get_wzxy():Vec4
-		return Vec4.of(this.w, this.z, this.x, this.y);
+	extern inline function get_wzxy()
+		return Vec4.of(a.w, a.z, a.x, a.y);
 
-	extern inline function get_wzxz():Vec4
-		return Vec4.of(this.w, this.z, this.x, this.z);
+	extern inline function get_wzxz()
+		return Vec4.of(a.w, a.z, a.x, a.z);
 
-	extern inline function get_wzxw():Vec4
-		return Vec4.of(this.w, this.z, this.x, this.w);
+	extern inline function get_wzxw()
+		return Vec4.of(a.w, a.z, a.x, a.w);
 
-	extern inline function get_wzyx():Vec4
-		return Vec4.of(this.w, this.z, this.y, this.x);
+	extern inline function get_wzyx()
+		return Vec4.of(a.w, a.z, a.y, a.x);
 
-	extern inline function get_wzyy():Vec4
-		return Vec4.of(this.w, this.z, this.y, this.y);
+	extern inline function get_wzyy()
+		return Vec4.of(a.w, a.z, a.y, a.y);
 
-	extern inline function get_wzyz():Vec4
-		return Vec4.of(this.w, this.z, this.y, this.z);
+	extern inline function get_wzyz()
+		return Vec4.of(a.w, a.z, a.y, a.z);
 
-	extern inline function get_wzyw():Vec4
-		return Vec4.of(this.w, this.z, this.y, this.w);
+	extern inline function get_wzyw()
+		return Vec4.of(a.w, a.z, a.y, a.w);
 
-	extern inline function get_wzzx():Vec4
-		return Vec4.of(this.w, this.z, this.z, this.x);
+	extern inline function get_wzzx()
+		return Vec4.of(a.w, a.z, a.z, a.x);
 
-	extern inline function get_wzzy():Vec4
-		return Vec4.of(this.w, this.z, this.z, this.y);
+	extern inline function get_wzzy()
+		return Vec4.of(a.w, a.z, a.z, a.y);
 
-	extern inline function get_wzzz():Vec4
-		return Vec4.of(this.w, this.z, this.z, this.z);
+	extern inline function get_wzzz()
+		return Vec4.of(a.w, a.z, a.z, a.z);
 
-	extern inline function get_wzzw():Vec4
-		return Vec4.of(this.w, this.z, this.z, this.w);
+	extern inline function get_wzzw()
+		return Vec4.of(a.w, a.z, a.z, a.w);
 
-	extern inline function get_wzwx():Vec4
-		return Vec4.of(this.w, this.z, this.w, this.x);
+	extern inline function get_wzwx()
+		return Vec4.of(a.w, a.z, a.w, a.x);
 
-	extern inline function get_wzwy():Vec4
-		return Vec4.of(this.w, this.z, this.w, this.y);
+	extern inline function get_wzwy()
+		return Vec4.of(a.w, a.z, a.w, a.y);
 
-	extern inline function get_wzwz():Vec4
-		return Vec4.of(this.w, this.z, this.w, this.z);
+	extern inline function get_wzwz()
+		return Vec4.of(a.w, a.z, a.w, a.z);
 
-	extern inline function get_wzww():Vec4
-		return Vec4.of(this.w, this.z, this.w, this.w);
+	extern inline function get_wzww()
+		return Vec4.of(a.w, a.z, a.w, a.w);
 
-	extern inline function get_wwxx():Vec4
-		return Vec4.of(this.w, this.w, this.x, this.x);
+	extern inline function get_wwxx()
+		return Vec4.of(a.w, a.w, a.x, a.x);
 
-	extern inline function get_wwxy():Vec4
-		return Vec4.of(this.w, this.w, this.x, this.y);
+	extern inline function get_wwxy()
+		return Vec4.of(a.w, a.w, a.x, a.y);
 
-	extern inline function get_wwxz():Vec4
-		return Vec4.of(this.w, this.w, this.x, this.z);
+	extern inline function get_wwxz()
+		return Vec4.of(a.w, a.w, a.x, a.z);
 
-	extern inline function get_wwxw():Vec4
-		return Vec4.of(this.w, this.w, this.x, this.w);
+	extern inline function get_wwxw()
+		return Vec4.of(a.w, a.w, a.x, a.w);
 
-	extern inline function get_wwyx():Vec4
-		return Vec4.of(this.w, this.w, this.y, this.x);
+	extern inline function get_wwyx()
+		return Vec4.of(a.w, a.w, a.y, a.x);
 
-	extern inline function get_wwyy():Vec4
-		return Vec4.of(this.w, this.w, this.y, this.y);
+	extern inline function get_wwyy()
+		return Vec4.of(a.w, a.w, a.y, a.y);
 
-	extern inline function get_wwyz():Vec4
-		return Vec4.of(this.w, this.w, this.y, this.z);
+	extern inline function get_wwyz()
+		return Vec4.of(a.w, a.w, a.y, a.z);
 
-	extern inline function get_wwyw():Vec4
-		return Vec4.of(this.w, this.w, this.y, this.w);
+	extern inline function get_wwyw()
+		return Vec4.of(a.w, a.w, a.y, a.w);
 
-	extern inline function get_wwzx():Vec4
-		return Vec4.of(this.w, this.w, this.z, this.x);
+	extern inline function get_wwzx()
+		return Vec4.of(a.w, a.w, a.z, a.x);
 
-	extern inline function get_wwzy():Vec4
-		return Vec4.of(this.w, this.w, this.z, this.y);
+	extern inline function get_wwzy()
+		return Vec4.of(a.w, a.w, a.z, a.y);
 
-	extern inline function get_wwzz():Vec4
-		return Vec4.of(this.w, this.w, this.z, this.z);
+	extern inline function get_wwzz()
+		return Vec4.of(a.w, a.w, a.z, a.z);
 
-	extern inline function get_wwzw():Vec4
-		return Vec4.of(this.w, this.w, this.z, this.w);
+	extern inline function get_wwzw()
+		return Vec4.of(a.w, a.w, a.z, a.w);
 
-	extern inline function get_wwwx():Vec4
-		return Vec4.of(this.w, this.w, this.w, this.x);
+	extern inline function get_wwwx()
+		return Vec4.of(a.w, a.w, a.w, a.x);
 
-	extern inline function get_wwwy():Vec4
-		return Vec4.of(this.w, this.w, this.w, this.y);
+	extern inline function get_wwwy()
+		return Vec4.of(a.w, a.w, a.w, a.y);
 
-	extern inline function get_wwwz():Vec4
-		return Vec4.of(this.w, this.w, this.w, this.z);
+	extern inline function get_wwwz()
+		return Vec4.of(a.w, a.w, a.w, a.z);
 
-	extern inline function get_wwww():Vec4
-		return Vec4.of(this.w, this.w, this.w, this.w);
+	extern inline function get_wwww()
+		return Vec4.of(a.w, a.w, a.w, a.w);
 }
 
 private class Vec4Data {

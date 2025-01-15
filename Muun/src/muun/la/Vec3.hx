@@ -10,29 +10,34 @@ abstract Vec3(Vec3Data) from Vec3Data {
 		return new Vec3(x, y, z);
 	}
 
+	var a(get, never):Vec3;
+
+	extern inline function get_a()
+		return this;
+
 	public static var zero(get, never):Vec3;
 	public static var one(get, never):Vec3;
 	public static var ex(get, never):Vec3;
 	public static var ey(get, never):Vec3;
 	public static var ez(get, never):Vec3;
 
-	extern static inline function get_zero():Vec3 {
+	extern static inline function get_zero() {
 		return of(0, 0, 0);
 	}
 
-	extern static inline function get_one():Vec3 {
+	extern static inline function get_one() {
 		return of(1, 1, 1);
 	}
 
-	extern static inline function get_ex():Vec3 {
+	extern static inline function get_ex() {
 		return of(1, 0, 0);
 	}
 
-	extern static inline function get_ey():Vec3 {
+	extern static inline function get_ey() {
 		return of(0, 1, 0);
 	}
 
-	extern static inline function get_ez():Vec3 {
+	extern static inline function get_ez() {
 		return of(0, 0, 1);
 	}
 
@@ -41,43 +46,39 @@ abstract Vec3(Vec3Data) from Vec3Data {
 	public var normalized(get, never):Vec3;
 	public var diag(get, never):Mat3;
 
-	extern inline function get_length():Float {
+	extern inline function get_length() {
 		return Math.sqrt(lengthSq);
 	}
 
-	extern inline function get_lengthSq():Float {
-		return dot(this);
+	extern inline function get_lengthSq() {
+		return dot(a);
 	}
 
-	extern inline function get_normalized():Vec3 {
+	extern inline function get_normalized() {
 		var l = length;
 		if (l > 0)
 			l = 1 / l;
-		return mulf(this, l);
+		return mulf(a, l);
 	}
 
-	extern inline function get_diag():Mat3 {
-		final a = this;
+	extern inline function get_diag() {
 		return Mat3.of(a.x, 0, 0, 0, a.y, 0, 0, 0, a.z);
 	}
 
 	extern public inline function dot(b:Vec3):Float {
-		final a = this;
 		return a.x * b.x + a.y * b.y + a.z * b.z;
 	}
 
 	extern public inline function tensorDot(b:Vec3):Mat3 {
-		final a = this;
-		return Mat3.of(a.x * b.x, a.x * b.y, a.x * b.z, a.y * b.x, a.y * b.y, a.y * b.z, a.z * b.x, a.z * b.y, a.z * b.z);
+		return Mat3.of(a.x * b.x, a.x * b.y, a.x * b.z, a.y * b.x, a.y * b.y, a.y * b.z, a.z * b.x, a.z * b.y,
+			a.z * b.z);
 	}
 
 	extern public inline function cross(b:Vec3):Vec3 {
-		final a = this;
 		return of(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x);
 	}
 
 	extern public inline function crossMat():Mat3 {
-		final a = this;
 		return Mat3.of(0, -a.z, a.y, a.z, 0, -a.x, -a.y, a.x, 0);
 	}
 
@@ -94,80 +95,112 @@ abstract Vec3(Vec3Data) from Vec3Data {
 	}
 
 	extern public inline function abs():Vec3 {
-		return unary(this, x -> x < 0 ? -x : x);
+		return unary(a, x -> x < 0 ? -x : x);
 	}
 
 	extern public inline function min(b:Vec3):Vec3 {
-		return binary(this, b, (x, y) -> x < y ? x : y);
+		return binary(a, b, (x, y) -> x < y ? x : y);
 	}
 
 	extern public inline function max(b:Vec3):Vec3 {
-		return binary(this, b, (x, y) -> x > y ? x : y);
+		return binary(a, b, (x, y) -> x > y ? x : y);
 	}
 
 	extern public inline function clamp(min:Vec3, max:Vec3):Vec3 {
-		return ternary(this, min, max, (x, min, max) -> x < min ? min : x > max ? max : x);
+		return ternary(a, min, max, (x, min, max) -> x < min ? min : x > max ? max : x);
 	}
 
 	@:op(-A)
-	extern public static inline function neg(a:Vec3):Vec3 {
+	extern static inline function neg(a:Vec3):Vec3 {
 		return unary(a, a -> -a);
 	}
 
 	@:op(A + B)
-	extern public static inline function add(a:Vec3, b:Vec3):Vec3 {
+	extern static inline function add(a:Vec3, b:Vec3):Vec3 {
 		return binary(a, b, (a, b) -> a + b);
 	}
 
 	@:op(A - B)
-	extern public static inline function sub(a:Vec3, b:Vec3):Vec3 {
+	extern static inline function sub(a:Vec3, b:Vec3):Vec3 {
 		return binary(a, b, (a, b) -> a - b);
 	}
 
 	@:op(A * B)
-	extern public static inline function mul(a:Vec3, b:Vec3):Vec3 {
+	extern static inline function mul(a:Vec3, b:Vec3):Vec3 {
 		return binary(a, b, (a, b) -> a * b);
 	}
 
 	@:op(A / B)
-	extern public static inline function div(a:Vec3, b:Vec3):Vec3 {
+	extern static inline function div(a:Vec3, b:Vec3):Vec3 {
 		return binary(a, b, (a, b) -> a / b);
 	}
 
 	@:op(A + B)
 	@:commutative
-	extern public static inline function addf(a:Vec3, b:Float):Vec3 {
+	extern static inline function addf(a:Vec3, b:Float):Vec3 {
 		return unary(a, a -> a + b);
 	}
 
 	@:op(A - B)
-	extern public static inline function subf(a:Vec3, b:Float):Vec3 {
+	extern static inline function subf(a:Vec3, b:Float):Vec3 {
 		return unary(a, a -> a - b);
 	}
 
 	@:op(A - B)
-	extern public static inline function fsub(a:Float, b:Vec3):Vec3 {
+	extern static inline function fsub(a:Float, b:Vec3):Vec3 {
 		return unary(b, b -> a - b);
 	}
 
 	@:op(A * B)
 	@:commutative
-	extern public static inline function mulf(a:Vec3, b:Float):Vec3 {
+	extern static inline function mulf(a:Vec3, b:Float):Vec3 {
 		return unary(a, a -> a * b);
 	}
 
 	@:op(A / B)
-	extern public static inline function divf(a:Vec3, b:Float):Vec3 {
+	extern static inline function divf(a:Vec3, b:Float):Vec3 {
 		return unary(a, a -> a / b);
 	}
 
 	@:op(A / B)
-	extern public static inline function fdiv(a:Float, b:Vec3):Vec3 {
+	extern static inline function fdiv(a:Float, b:Vec3):Vec3 {
 		return unary(b, b -> a / b);
 	}
 
+	@:arrayAccess
+	extern inline function get(index:Int):Float {
+		return switch index {
+			case 0:
+				a.x;
+			case 1:
+				a.y;
+			case 2:
+				a.z;
+			case _:
+				throw "Vec3 index out of bounds: " + index;
+		}
+	}
+
+	extern public inline function map(f:(component:Float) -> Float):Vec3 {
+		return unary(a, f);
+	}
+
+	extern public inline function extend(w:Float):Vec4 {
+		return Vec4.of(a.x, a.y, a.z, w);
+	}
+
+	extern public inline function copy():Vec3 {
+		return of(a.x, a.y, a.z);
+	}
+
+	public function toString():String {
+		return 'Vec3(${a.x}, ${a.y}, ${a.z})';
+	}
+
+	// following methods mutate the state
+
 	@:op(A <<= B)
-	extern public static inline function assign(a:Vec3, b:Vec3):Vec3 {
+	extern inline function assign(b:Vec3):Vec3 {
 		a.x = b.x;
 		a.y = b.y;
 		a.z = b.z;
@@ -175,80 +208,47 @@ abstract Vec3(Vec3Data) from Vec3Data {
 	}
 
 	@:op(A += B)
-	extern public static inline function addEq(a:Vec3, b:Vec3):Vec3 {
+	extern inline function addEq(b:Vec3):Vec3 {
 		return a <<= a + b;
 	}
 
 	@:op(A -= B)
-	extern public static inline function subEq(a:Vec3, b:Vec3):Vec3 {
+	extern inline function subEq(b:Vec3):Vec3 {
 		return a <<= a - b;
 	}
 
 	@:op(A *= B)
-	extern public static inline function mulEq(a:Vec3, b:Vec3):Vec3 {
+	extern inline function mulEq(b:Vec3):Vec3 {
 		return a <<= a * b;
 	}
 
 	@:op(A /= B)
-	extern public static inline function divEq(a:Vec3, b:Vec3):Vec3 {
+	extern inline function divEq(b:Vec3):Vec3 {
 		return a <<= a / b;
 	}
 
 	@:op(A += B)
-	extern public static inline function addfEq(a:Vec3, b:Float):Vec3 {
+	extern inline function addfEq(b:Float):Vec3 {
 		return a <<= a + b;
 	}
 
 	@:op(A -= B)
-	extern public static inline function subfEq(a:Vec3, b:Float):Vec3 {
+	extern inline function subfEq(b:Float):Vec3 {
 		return a <<= a - b;
 	}
 
 	@:op(A *= B)
-	extern public static inline function mulfEq(a:Vec3, b:Float):Vec3 {
+	extern inline function mulfEq(b:Float):Vec3 {
 		return a <<= a * b;
 	}
 
 	@:op(A /= B)
-	extern public static inline function divfEq(a:Vec3, b:Float):Vec3 {
+	extern inline function divfEq(b:Float):Vec3 {
 		return a <<= a / b;
 	}
 
-	@:arrayAccess
-	extern public inline function get(index:Int):Float {
-		return switch index {
-			case 0:
-				this.x;
-			case 1:
-				this.y;
-			case 2:
-				this.z;
-			case _:
-				throw "Vec3 index out of bounds: " + index;
-		}
-	}
-
-	extern public inline function map(f:(component:Float) -> Float):Vec3 {
-		return unary(this, f);
-	}
-
 	extern public inline function set(x:Float, y:Float, z:Float):Vec3 {
-		return assign(this, of(x, y, z));
-	}
-
-	extern public inline function extend(w:Float):Vec4 {
-		final a = this;
-		return Vec4.of(a.x, a.y, a.z, w);
-	}
-
-	extern public inline function copy():Vec3 {
-		final a = this;
-		return of(a.x, a.y, a.z);
-	}
-
-	public function toString():String {
-		final a = this;
-		return 'Vec3(${a.x}, ${a.y}, ${a.z})';
+		return a <<= of(x, y, z);
 	}
 
 	public var xx(get, never):Vec2;
@@ -369,356 +369,356 @@ abstract Vec3(Vec3Data) from Vec3Data {
 	public var zzzy(get, never):Vec4;
 	public var zzzz(get, never):Vec4;
 
-	extern inline function get_xx():Vec2
-		return Vec2.of(this.x, this.x);
+	extern inline function get_xx()
+		return Vec2.of(a.x, a.x);
 
-	extern inline function get_xy():Vec2
-		return Vec2.of(this.x, this.y);
+	extern inline function get_xy()
+		return Vec2.of(a.x, a.y);
 
-	extern inline function get_xz():Vec2
-		return Vec2.of(this.x, this.z);
+	extern inline function get_xz()
+		return Vec2.of(a.x, a.z);
 
-	extern inline function get_yx():Vec2
-		return Vec2.of(this.y, this.x);
+	extern inline function get_yx()
+		return Vec2.of(a.y, a.x);
 
-	extern inline function get_yy():Vec2
-		return Vec2.of(this.y, this.y);
+	extern inline function get_yy()
+		return Vec2.of(a.y, a.y);
 
-	extern inline function get_yz():Vec2
-		return Vec2.of(this.y, this.z);
+	extern inline function get_yz()
+		return Vec2.of(a.y, a.z);
 
-	extern inline function get_zx():Vec2
-		return Vec2.of(this.z, this.x);
+	extern inline function get_zx()
+		return Vec2.of(a.z, a.x);
 
-	extern inline function get_zy():Vec2
-		return Vec2.of(this.z, this.y);
+	extern inline function get_zy()
+		return Vec2.of(a.z, a.y);
 
-	extern inline function get_zz():Vec2
-		return Vec2.of(this.z, this.z);
+	extern inline function get_zz()
+		return Vec2.of(a.z, a.z);
 
-	extern inline function get_xxx():Vec3
-		return Vec3.of(this.x, this.x, this.x);
+	extern inline function get_xxx()
+		return Vec3.of(a.x, a.x, a.x);
 
-	extern inline function get_xxy():Vec3
-		return Vec3.of(this.x, this.x, this.y);
+	extern inline function get_xxy()
+		return Vec3.of(a.x, a.x, a.y);
 
-	extern inline function get_xxz():Vec3
-		return Vec3.of(this.x, this.x, this.z);
+	extern inline function get_xxz()
+		return Vec3.of(a.x, a.x, a.z);
 
-	extern inline function get_xyx():Vec3
-		return Vec3.of(this.x, this.y, this.x);
+	extern inline function get_xyx()
+		return Vec3.of(a.x, a.y, a.x);
 
-	extern inline function get_xyy():Vec3
-		return Vec3.of(this.x, this.y, this.y);
+	extern inline function get_xyy()
+		return Vec3.of(a.x, a.y, a.y);
 
-	extern inline function get_xyz():Vec3
-		return Vec3.of(this.x, this.y, this.z);
+	extern inline function get_xyz()
+		return Vec3.of(a.x, a.y, a.z);
 
-	extern inline function get_xzx():Vec3
-		return Vec3.of(this.x, this.z, this.x);
+	extern inline function get_xzx()
+		return Vec3.of(a.x, a.z, a.x);
 
-	extern inline function get_xzy():Vec3
-		return Vec3.of(this.x, this.z, this.y);
+	extern inline function get_xzy()
+		return Vec3.of(a.x, a.z, a.y);
 
-	extern inline function get_xzz():Vec3
-		return Vec3.of(this.x, this.z, this.z);
+	extern inline function get_xzz()
+		return Vec3.of(a.x, a.z, a.z);
 
-	extern inline function get_yxx():Vec3
-		return Vec3.of(this.y, this.x, this.x);
+	extern inline function get_yxx()
+		return Vec3.of(a.y, a.x, a.x);
 
-	extern inline function get_yxy():Vec3
-		return Vec3.of(this.y, this.x, this.y);
+	extern inline function get_yxy()
+		return Vec3.of(a.y, a.x, a.y);
 
-	extern inline function get_yxz():Vec3
-		return Vec3.of(this.y, this.x, this.z);
+	extern inline function get_yxz()
+		return Vec3.of(a.y, a.x, a.z);
 
-	extern inline function get_yyx():Vec3
-		return Vec3.of(this.y, this.y, this.x);
+	extern inline function get_yyx()
+		return Vec3.of(a.y, a.y, a.x);
 
-	extern inline function get_yyy():Vec3
-		return Vec3.of(this.y, this.y, this.y);
+	extern inline function get_yyy()
+		return Vec3.of(a.y, a.y, a.y);
 
-	extern inline function get_yyz():Vec3
-		return Vec3.of(this.y, this.y, this.z);
+	extern inline function get_yyz()
+		return Vec3.of(a.y, a.y, a.z);
 
-	extern inline function get_yzx():Vec3
-		return Vec3.of(this.y, this.z, this.x);
+	extern inline function get_yzx()
+		return Vec3.of(a.y, a.z, a.x);
 
-	extern inline function get_yzy():Vec3
-		return Vec3.of(this.y, this.z, this.y);
+	extern inline function get_yzy()
+		return Vec3.of(a.y, a.z, a.y);
 
-	extern inline function get_yzz():Vec3
-		return Vec3.of(this.y, this.z, this.z);
+	extern inline function get_yzz()
+		return Vec3.of(a.y, a.z, a.z);
 
-	extern inline function get_zxx():Vec3
-		return Vec3.of(this.z, this.x, this.x);
+	extern inline function get_zxx()
+		return Vec3.of(a.z, a.x, a.x);
 
-	extern inline function get_zxy():Vec3
-		return Vec3.of(this.z, this.x, this.y);
+	extern inline function get_zxy()
+		return Vec3.of(a.z, a.x, a.y);
 
-	extern inline function get_zxz():Vec3
-		return Vec3.of(this.z, this.x, this.z);
+	extern inline function get_zxz()
+		return Vec3.of(a.z, a.x, a.z);
 
-	extern inline function get_zyx():Vec3
-		return Vec3.of(this.z, this.y, this.x);
+	extern inline function get_zyx()
+		return Vec3.of(a.z, a.y, a.x);
 
-	extern inline function get_zyy():Vec3
-		return Vec3.of(this.z, this.y, this.y);
+	extern inline function get_zyy()
+		return Vec3.of(a.z, a.y, a.y);
 
-	extern inline function get_zyz():Vec3
-		return Vec3.of(this.z, this.y, this.z);
+	extern inline function get_zyz()
+		return Vec3.of(a.z, a.y, a.z);
 
-	extern inline function get_zzx():Vec3
-		return Vec3.of(this.z, this.z, this.x);
+	extern inline function get_zzx()
+		return Vec3.of(a.z, a.z, a.x);
 
-	extern inline function get_zzy():Vec3
-		return Vec3.of(this.z, this.z, this.y);
+	extern inline function get_zzy()
+		return Vec3.of(a.z, a.z, a.y);
 
-	extern inline function get_zzz():Vec3
-		return Vec3.of(this.z, this.z, this.z);
+	extern inline function get_zzz()
+		return Vec3.of(a.z, a.z, a.z);
 
-	extern inline function get_xxxx():Vec4
-		return Vec4.of(this.x, this.x, this.x, this.x);
+	extern inline function get_xxxx()
+		return Vec4.of(a.x, a.x, a.x, a.x);
 
-	extern inline function get_xxxy():Vec4
-		return Vec4.of(this.x, this.x, this.x, this.y);
+	extern inline function get_xxxy()
+		return Vec4.of(a.x, a.x, a.x, a.y);
 
-	extern inline function get_xxxz():Vec4
-		return Vec4.of(this.x, this.x, this.x, this.z);
+	extern inline function get_xxxz()
+		return Vec4.of(a.x, a.x, a.x, a.z);
 
-	extern inline function get_xxyx():Vec4
-		return Vec4.of(this.x, this.x, this.y, this.x);
+	extern inline function get_xxyx()
+		return Vec4.of(a.x, a.x, a.y, a.x);
 
-	extern inline function get_xxyy():Vec4
-		return Vec4.of(this.x, this.x, this.y, this.y);
+	extern inline function get_xxyy()
+		return Vec4.of(a.x, a.x, a.y, a.y);
 
-	extern inline function get_xxyz():Vec4
-		return Vec4.of(this.x, this.x, this.y, this.z);
+	extern inline function get_xxyz()
+		return Vec4.of(a.x, a.x, a.y, a.z);
 
-	extern inline function get_xxzx():Vec4
-		return Vec4.of(this.x, this.x, this.z, this.x);
+	extern inline function get_xxzx()
+		return Vec4.of(a.x, a.x, a.z, a.x);
 
-	extern inline function get_xxzy():Vec4
-		return Vec4.of(this.x, this.x, this.z, this.y);
+	extern inline function get_xxzy()
+		return Vec4.of(a.x, a.x, a.z, a.y);
 
-	extern inline function get_xxzz():Vec4
-		return Vec4.of(this.x, this.x, this.z, this.z);
+	extern inline function get_xxzz()
+		return Vec4.of(a.x, a.x, a.z, a.z);
 
-	extern inline function get_xyxx():Vec4
-		return Vec4.of(this.x, this.y, this.x, this.x);
+	extern inline function get_xyxx()
+		return Vec4.of(a.x, a.y, a.x, a.x);
 
-	extern inline function get_xyxy():Vec4
-		return Vec4.of(this.x, this.y, this.x, this.y);
+	extern inline function get_xyxy()
+		return Vec4.of(a.x, a.y, a.x, a.y);
 
-	extern inline function get_xyxz():Vec4
-		return Vec4.of(this.x, this.y, this.x, this.z);
+	extern inline function get_xyxz()
+		return Vec4.of(a.x, a.y, a.x, a.z);
 
-	extern inline function get_xyyx():Vec4
-		return Vec4.of(this.x, this.y, this.y, this.x);
+	extern inline function get_xyyx()
+		return Vec4.of(a.x, a.y, a.y, a.x);
 
-	extern inline function get_xyyy():Vec4
-		return Vec4.of(this.x, this.y, this.y, this.y);
+	extern inline function get_xyyy()
+		return Vec4.of(a.x, a.y, a.y, a.y);
 
-	extern inline function get_xyyz():Vec4
-		return Vec4.of(this.x, this.y, this.y, this.z);
+	extern inline function get_xyyz()
+		return Vec4.of(a.x, a.y, a.y, a.z);
 
-	extern inline function get_xyzx():Vec4
-		return Vec4.of(this.x, this.y, this.z, this.x);
+	extern inline function get_xyzx()
+		return Vec4.of(a.x, a.y, a.z, a.x);
 
-	extern inline function get_xyzy():Vec4
-		return Vec4.of(this.x, this.y, this.z, this.y);
+	extern inline function get_xyzy()
+		return Vec4.of(a.x, a.y, a.z, a.y);
 
-	extern inline function get_xyzz():Vec4
-		return Vec4.of(this.x, this.y, this.z, this.z);
+	extern inline function get_xyzz()
+		return Vec4.of(a.x, a.y, a.z, a.z);
 
-	extern inline function get_xzxx():Vec4
-		return Vec4.of(this.x, this.z, this.x, this.x);
+	extern inline function get_xzxx()
+		return Vec4.of(a.x, a.z, a.x, a.x);
 
-	extern inline function get_xzxy():Vec4
-		return Vec4.of(this.x, this.z, this.x, this.y);
+	extern inline function get_xzxy()
+		return Vec4.of(a.x, a.z, a.x, a.y);
 
-	extern inline function get_xzxz():Vec4
-		return Vec4.of(this.x, this.z, this.x, this.z);
+	extern inline function get_xzxz()
+		return Vec4.of(a.x, a.z, a.x, a.z);
 
-	extern inline function get_xzyx():Vec4
-		return Vec4.of(this.x, this.z, this.y, this.x);
+	extern inline function get_xzyx()
+		return Vec4.of(a.x, a.z, a.y, a.x);
 
-	extern inline function get_xzyy():Vec4
-		return Vec4.of(this.x, this.z, this.y, this.y);
+	extern inline function get_xzyy()
+		return Vec4.of(a.x, a.z, a.y, a.y);
 
-	extern inline function get_xzyz():Vec4
-		return Vec4.of(this.x, this.z, this.y, this.z);
+	extern inline function get_xzyz()
+		return Vec4.of(a.x, a.z, a.y, a.z);
 
-	extern inline function get_xzzx():Vec4
-		return Vec4.of(this.x, this.z, this.z, this.x);
+	extern inline function get_xzzx()
+		return Vec4.of(a.x, a.z, a.z, a.x);
 
-	extern inline function get_xzzy():Vec4
-		return Vec4.of(this.x, this.z, this.z, this.y);
+	extern inline function get_xzzy()
+		return Vec4.of(a.x, a.z, a.z, a.y);
 
-	extern inline function get_xzzz():Vec4
-		return Vec4.of(this.x, this.z, this.z, this.z);
+	extern inline function get_xzzz()
+		return Vec4.of(a.x, a.z, a.z, a.z);
 
-	extern inline function get_yxxx():Vec4
-		return Vec4.of(this.y, this.x, this.x, this.x);
+	extern inline function get_yxxx()
+		return Vec4.of(a.y, a.x, a.x, a.x);
 
-	extern inline function get_yxxy():Vec4
-		return Vec4.of(this.y, this.x, this.x, this.y);
+	extern inline function get_yxxy()
+		return Vec4.of(a.y, a.x, a.x, a.y);
 
-	extern inline function get_yxxz():Vec4
-		return Vec4.of(this.y, this.x, this.x, this.z);
+	extern inline function get_yxxz()
+		return Vec4.of(a.y, a.x, a.x, a.z);
 
-	extern inline function get_yxyx():Vec4
-		return Vec4.of(this.y, this.x, this.y, this.x);
+	extern inline function get_yxyx()
+		return Vec4.of(a.y, a.x, a.y, a.x);
 
-	extern inline function get_yxyy():Vec4
-		return Vec4.of(this.y, this.x, this.y, this.y);
+	extern inline function get_yxyy()
+		return Vec4.of(a.y, a.x, a.y, a.y);
 
-	extern inline function get_yxyz():Vec4
-		return Vec4.of(this.y, this.x, this.y, this.z);
+	extern inline function get_yxyz()
+		return Vec4.of(a.y, a.x, a.y, a.z);
 
-	extern inline function get_yxzx():Vec4
-		return Vec4.of(this.y, this.x, this.z, this.x);
+	extern inline function get_yxzx()
+		return Vec4.of(a.y, a.x, a.z, a.x);
 
-	extern inline function get_yxzy():Vec4
-		return Vec4.of(this.y, this.x, this.z, this.y);
+	extern inline function get_yxzy()
+		return Vec4.of(a.y, a.x, a.z, a.y);
 
-	extern inline function get_yxzz():Vec4
-		return Vec4.of(this.y, this.x, this.z, this.z);
+	extern inline function get_yxzz()
+		return Vec4.of(a.y, a.x, a.z, a.z);
 
-	extern inline function get_yyxx():Vec4
-		return Vec4.of(this.y, this.y, this.x, this.x);
+	extern inline function get_yyxx()
+		return Vec4.of(a.y, a.y, a.x, a.x);
 
-	extern inline function get_yyxy():Vec4
-		return Vec4.of(this.y, this.y, this.x, this.y);
+	extern inline function get_yyxy()
+		return Vec4.of(a.y, a.y, a.x, a.y);
 
-	extern inline function get_yyxz():Vec4
-		return Vec4.of(this.y, this.y, this.x, this.z);
+	extern inline function get_yyxz()
+		return Vec4.of(a.y, a.y, a.x, a.z);
 
-	extern inline function get_yyyx():Vec4
-		return Vec4.of(this.y, this.y, this.y, this.x);
+	extern inline function get_yyyx()
+		return Vec4.of(a.y, a.y, a.y, a.x);
 
-	extern inline function get_yyyy():Vec4
-		return Vec4.of(this.y, this.y, this.y, this.y);
+	extern inline function get_yyyy()
+		return Vec4.of(a.y, a.y, a.y, a.y);
 
-	extern inline function get_yyyz():Vec4
-		return Vec4.of(this.y, this.y, this.y, this.z);
+	extern inline function get_yyyz()
+		return Vec4.of(a.y, a.y, a.y, a.z);
 
-	extern inline function get_yyzx():Vec4
-		return Vec4.of(this.y, this.y, this.z, this.x);
+	extern inline function get_yyzx()
+		return Vec4.of(a.y, a.y, a.z, a.x);
 
-	extern inline function get_yyzy():Vec4
-		return Vec4.of(this.y, this.y, this.z, this.y);
+	extern inline function get_yyzy()
+		return Vec4.of(a.y, a.y, a.z, a.y);
 
-	extern inline function get_yyzz():Vec4
-		return Vec4.of(this.y, this.y, this.z, this.z);
+	extern inline function get_yyzz()
+		return Vec4.of(a.y, a.y, a.z, a.z);
 
-	extern inline function get_yzxx():Vec4
-		return Vec4.of(this.y, this.z, this.x, this.x);
+	extern inline function get_yzxx()
+		return Vec4.of(a.y, a.z, a.x, a.x);
 
-	extern inline function get_yzxy():Vec4
-		return Vec4.of(this.y, this.z, this.x, this.y);
+	extern inline function get_yzxy()
+		return Vec4.of(a.y, a.z, a.x, a.y);
 
-	extern inline function get_yzxz():Vec4
-		return Vec4.of(this.y, this.z, this.x, this.z);
+	extern inline function get_yzxz()
+		return Vec4.of(a.y, a.z, a.x, a.z);
 
-	extern inline function get_yzyx():Vec4
-		return Vec4.of(this.y, this.z, this.y, this.x);
+	extern inline function get_yzyx()
+		return Vec4.of(a.y, a.z, a.y, a.x);
 
-	extern inline function get_yzyy():Vec4
-		return Vec4.of(this.y, this.z, this.y, this.y);
+	extern inline function get_yzyy()
+		return Vec4.of(a.y, a.z, a.y, a.y);
 
-	extern inline function get_yzyz():Vec4
-		return Vec4.of(this.y, this.z, this.y, this.z);
+	extern inline function get_yzyz()
+		return Vec4.of(a.y, a.z, a.y, a.z);
 
-	extern inline function get_yzzx():Vec4
-		return Vec4.of(this.y, this.z, this.z, this.x);
+	extern inline function get_yzzx()
+		return Vec4.of(a.y, a.z, a.z, a.x);
 
-	extern inline function get_yzzy():Vec4
-		return Vec4.of(this.y, this.z, this.z, this.y);
+	extern inline function get_yzzy()
+		return Vec4.of(a.y, a.z, a.z, a.y);
 
-	extern inline function get_yzzz():Vec4
-		return Vec4.of(this.y, this.z, this.z, this.z);
+	extern inline function get_yzzz()
+		return Vec4.of(a.y, a.z, a.z, a.z);
 
-	extern inline function get_zxxx():Vec4
-		return Vec4.of(this.z, this.x, this.x, this.x);
+	extern inline function get_zxxx()
+		return Vec4.of(a.z, a.x, a.x, a.x);
 
-	extern inline function get_zxxy():Vec4
-		return Vec4.of(this.z, this.x, this.x, this.y);
+	extern inline function get_zxxy()
+		return Vec4.of(a.z, a.x, a.x, a.y);
 
-	extern inline function get_zxxz():Vec4
-		return Vec4.of(this.z, this.x, this.x, this.z);
+	extern inline function get_zxxz()
+		return Vec4.of(a.z, a.x, a.x, a.z);
 
-	extern inline function get_zxyx():Vec4
-		return Vec4.of(this.z, this.x, this.y, this.x);
+	extern inline function get_zxyx()
+		return Vec4.of(a.z, a.x, a.y, a.x);
 
-	extern inline function get_zxyy():Vec4
-		return Vec4.of(this.z, this.x, this.y, this.y);
+	extern inline function get_zxyy()
+		return Vec4.of(a.z, a.x, a.y, a.y);
 
-	extern inline function get_zxyz():Vec4
-		return Vec4.of(this.z, this.x, this.y, this.z);
+	extern inline function get_zxyz()
+		return Vec4.of(a.z, a.x, a.y, a.z);
 
-	extern inline function get_zxzx():Vec4
-		return Vec4.of(this.z, this.x, this.z, this.x);
+	extern inline function get_zxzx()
+		return Vec4.of(a.z, a.x, a.z, a.x);
 
-	extern inline function get_zxzy():Vec4
-		return Vec4.of(this.z, this.x, this.z, this.y);
+	extern inline function get_zxzy()
+		return Vec4.of(a.z, a.x, a.z, a.y);
 
-	extern inline function get_zxzz():Vec4
-		return Vec4.of(this.z, this.x, this.z, this.z);
+	extern inline function get_zxzz()
+		return Vec4.of(a.z, a.x, a.z, a.z);
 
-	extern inline function get_zyxx():Vec4
-		return Vec4.of(this.z, this.y, this.x, this.x);
+	extern inline function get_zyxx()
+		return Vec4.of(a.z, a.y, a.x, a.x);
 
-	extern inline function get_zyxy():Vec4
-		return Vec4.of(this.z, this.y, this.x, this.y);
+	extern inline function get_zyxy()
+		return Vec4.of(a.z, a.y, a.x, a.y);
 
-	extern inline function get_zyxz():Vec4
-		return Vec4.of(this.z, this.y, this.x, this.z);
+	extern inline function get_zyxz()
+		return Vec4.of(a.z, a.y, a.x, a.z);
 
-	extern inline function get_zyyx():Vec4
-		return Vec4.of(this.z, this.y, this.y, this.x);
+	extern inline function get_zyyx()
+		return Vec4.of(a.z, a.y, a.y, a.x);
 
-	extern inline function get_zyyy():Vec4
-		return Vec4.of(this.z, this.y, this.y, this.y);
+	extern inline function get_zyyy()
+		return Vec4.of(a.z, a.y, a.y, a.y);
 
-	extern inline function get_zyyz():Vec4
-		return Vec4.of(this.z, this.y, this.y, this.z);
+	extern inline function get_zyyz()
+		return Vec4.of(a.z, a.y, a.y, a.z);
 
-	extern inline function get_zyzx():Vec4
-		return Vec4.of(this.z, this.y, this.z, this.x);
+	extern inline function get_zyzx()
+		return Vec4.of(a.z, a.y, a.z, a.x);
 
-	extern inline function get_zyzy():Vec4
-		return Vec4.of(this.z, this.y, this.z, this.y);
+	extern inline function get_zyzy()
+		return Vec4.of(a.z, a.y, a.z, a.y);
 
-	extern inline function get_zyzz():Vec4
-		return Vec4.of(this.z, this.y, this.z, this.z);
+	extern inline function get_zyzz()
+		return Vec4.of(a.z, a.y, a.z, a.z);
 
-	extern inline function get_zzxx():Vec4
-		return Vec4.of(this.z, this.z, this.x, this.x);
+	extern inline function get_zzxx()
+		return Vec4.of(a.z, a.z, a.x, a.x);
 
-	extern inline function get_zzxy():Vec4
-		return Vec4.of(this.z, this.z, this.x, this.y);
+	extern inline function get_zzxy()
+		return Vec4.of(a.z, a.z, a.x, a.y);
 
-	extern inline function get_zzxz():Vec4
-		return Vec4.of(this.z, this.z, this.x, this.z);
+	extern inline function get_zzxz()
+		return Vec4.of(a.z, a.z, a.x, a.z);
 
-	extern inline function get_zzyx():Vec4
-		return Vec4.of(this.z, this.z, this.y, this.x);
+	extern inline function get_zzyx()
+		return Vec4.of(a.z, a.z, a.y, a.x);
 
-	extern inline function get_zzyy():Vec4
-		return Vec4.of(this.z, this.z, this.y, this.y);
+	extern inline function get_zzyy()
+		return Vec4.of(a.z, a.z, a.y, a.y);
 
-	extern inline function get_zzyz():Vec4
-		return Vec4.of(this.z, this.z, this.y, this.z);
+	extern inline function get_zzyz()
+		return Vec4.of(a.z, a.z, a.y, a.z);
 
-	extern inline function get_zzzx():Vec4
-		return Vec4.of(this.z, this.z, this.z, this.x);
+	extern inline function get_zzzx()
+		return Vec4.of(a.z, a.z, a.z, a.x);
 
-	extern inline function get_zzzy():Vec4
-		return Vec4.of(this.z, this.z, this.z, this.y);
+	extern inline function get_zzzy()
+		return Vec4.of(a.z, a.z, a.z, a.y);
 
-	extern inline function get_zzzz():Vec4
-		return Vec4.of(this.z, this.z, this.z, this.z);
+	extern inline function get_zzzz()
+		return Vec4.of(a.z, a.z, a.z, a.z);
 }
 
 private class Vec3Data {
